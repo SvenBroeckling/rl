@@ -1,7 +1,7 @@
 import curses
 
+from constants import TILES
 from room_base import RoomBase
-from tiles import TILES
 
 
 class Hallway(RoomBase):

@@ -34,7 +34,7 @@ class Game:
         self.inventory.add_item(Item("c", "Sword"))
 
         # Initialize game states
-        self.target_mode = False
+        self.target_mode = None
         self.target_index = 0
         self.target_x = None
         self.target_y = None
@@ -86,12 +86,7 @@ class Game:
 
         log_start_y = self.screen_height - 5 + offset_y
         for i, message in enumerate(self.log_messages[-3:], 1):
-            self.stdscr.addstr(
-                log_start_y + i,
-                0,
-                message[: self.side_panel_width - 2],
-                curses.color_pair(7),
-            )
+            self.stdscr.addstr(log_start_y + i, 0, message, curses.color_pair(7))
 
     def add_log_message(self, message):
         self.log_messages.append(message)
@@ -110,36 +105,37 @@ class Game:
                 break
         self.add_log_message("Entered the hallway.")
 
+    def handle_input(self, key):
+        if key == ord("q"):
+            return False
+        elif key == ord("f"):
+            if isinstance(self.current_room, EnemiesMixin):
+                self.player.target(self.current_room.enemies)
+        elif key == ord("i"):
+            selected_item = self.inventory.open_inventory(self.stdscr)
+            if selected_item:
+                self.add_log_message(f"Selected {selected_item.name}")
+
+        self.player.handle_input(key, self)
+        if isinstance(self.current_room, EnemiesMixin):
+            self.current_room.move_enemies()
+        return True
+
+    def render(self):
+        self.stdscr.clear()
+        self.draw_map()
+        self.status_line.draw()
+        self.draw_entities()
+        self.draw_room_name()
+        self.draw_side_panel()
+        self.stdscr.refresh()
+
     def game_loop(self):
         self.init_colors()
         self.create_available_rooms()
         self.add_log_message("Welcome to the dungeon!")
 
         while True:
-            self.stdscr.clear()
-            self.draw_map()
-            self.status_line.draw()
-            self.draw_entities()
-            self.draw_room_name()
-            self.draw_side_panel()
-
-            self.stdscr.refresh()
-            key = self.stdscr.getch()
-
-            if key == ord("q"):
+            self.render()
+            if not self.handle_input(self.stdscr.getch()):
                 break
-            elif key == ord("f"):
-                if isinstance(self.current_room, EnemiesMixin):
-                    self.player.toggle_target_mode(self.current_room.enemies)
-            elif key == ord("i"):
-                selected_item = self.inventory.open_inventory(self.stdscr)
-                if selected_item:
-                    self.add_log_message(f"Selected {selected_item.name}")
-
-            if not self.player.target_mode:
-                self.player.handle_input(key, self)
-                if isinstance(self.current_room, EnemiesMixin):
-                    self.current_room.move_enemies()
-            else:
-                if isinstance(self.current_room, EnemiesMixin):
-                    self.player.handle_target_mode(key, self.current_room.enemies)

@@ -1,8 +1,8 @@
 import random
 
+from constants import TILES
 from mixins import EnemiesMixin
 from room_base import RoomBase
-from tiles import TILES
 
 
 class Room(RoomBase, EnemiesMixin):

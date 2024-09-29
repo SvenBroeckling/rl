@@ -4,7 +4,7 @@ import curses
 class StatusLine:
     def __init__(self, stdscr):
         self.stdscr = stdscr
-        self.default_status = "q: Quit | i: Inventory | f: Target | hjkl: Move"
+        self.default_status = "q: Quit | i: Inventory | f: Target/Attack | hjkl: Move"
         self.status = self.default_status
 
     def set_status(self, status):
