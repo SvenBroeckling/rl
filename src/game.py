@@ -6,14 +6,18 @@ from items import Item
 from mixins import EnemiesMixin
 from player import Player
 from rooms import Room
+from status_line import StatusLine
 
 
 class Game:
     def __init__(self, stdscr):
         self.stdscr = stdscr
+        curses.curs_set(0)
         self.side_panel_width = 25
         self.screen_height, self.screen_width = stdscr.getmaxyx()
         self.update_game_dimensions()
+
+        self.status_line = StatusLine(stdscr)
 
         self.hallway = Hallway(self)
         self.current_room = self.hallway
@@ -22,6 +26,7 @@ class Game:
         self.player = Player(
             self.current_room.width // 2, self.current_room.height // 2, self
         )
+        self.selected_enemy = None
         self.inventory = Inventory()
 
         self.inventory.add_item(Item("a", "Health Potion", 2))
@@ -54,7 +59,7 @@ class Game:
     def update_game_dimensions(self):
         self.screen_height, self.screen_width = self.stdscr.getmaxyx()
         self.map_width = self.screen_width - self.side_panel_width
-        self.map_height = self.screen_height - 2
+        self.map_height = self.screen_height - 7  # 1 for status line, 3 for log
 
     def draw_map(self):
         self.current_room.draw(self.stdscr)
@@ -67,17 +72,23 @@ class Game:
     def draw_side_panel(self):
         panel_x = self.map_width
         self.player.draw_status(self.stdscr, panel_x)
-        self.draw_log(panel_x)
+        if self.selected_enemy:
+            self.selected_enemy.draw_status(self.stdscr, panel_x)
+        self.draw_log()
 
     def draw_room_name(self):
         self.stdscr.addstr(0, 0, self.current_room.name, curses.color_pair(7))
 
-    def draw_log(self, panel_x):
-        log_start_y = self.screen_height - 6
-        for i, message in enumerate(self.log_messages[-4:], 1):
+    def draw_log(self):
+        offset_y = 0
+        if len(self.log_messages) < 3:
+            offset_y = 3 - len(self.log_messages)
+
+        log_start_y = self.screen_height - 5 + offset_y
+        for i, message in enumerate(self.log_messages[-3:], 1):
             self.stdscr.addstr(
                 log_start_y + i,
-                panel_x + 1,
+                0,
                 message[: self.side_panel_width - 2],
                 curses.color_pair(7),
             )
@@ -87,21 +98,27 @@ class Game:
 
     def enter_room(self, room):
         self.current_room = room
-        self.player.x = self.current_room.width // 2
-        self.player.y = self.current_room.height // 2
+        self.current_room.was_entered = True
+        self.current_room.position_player(self.player)
         self.add_log_message("Entered a room.")
+
+    def exit_room(self, room):
+        self.current_room = self.hallway
+        for available_room in self.available_rooms:
+            if available_room == room:
+                self.player.x, self.player.y = available_room.hallway_entry
+                break
+        self.add_log_message("Entered the hallway.")
 
     def game_loop(self):
         self.init_colors()
         self.create_available_rooms()
         self.add_log_message("Welcome to the dungeon!")
-        self.add_log_message("Move with arrow keys")
-        self.add_log_message("Press 'f' to target")
-        self.add_log_message("Press 'q' to quit")
 
         while True:
             self.stdscr.clear()
             self.draw_map()
+            self.status_line.draw()
             self.draw_entities()
             self.draw_room_name()
             self.draw_side_panel()

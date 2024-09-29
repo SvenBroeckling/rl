@@ -13,6 +13,10 @@ class Player:
         self.char = PLAYER_CHAR
         self.speed = 1
         self.health = 10
+        self.reputation = 0
+        self.shooting_skill = 1
+        self.equipped_weapon = None
+        self.equipped_armor = None
         self.target_mode = False
         self.target_index = 0
         self.target_x = None
@@ -33,6 +37,7 @@ class Player:
             self.char,
             curses.color_pair(COLOR_PLAYER),
         )
+        self.draw_target_line(stdscr)
 
     def draw_status(self, stdscr, panel_x):
         status_y = 1
@@ -45,19 +50,50 @@ class Player:
         stdscr.addstr(
             status_y + 1,
             panel_x + 1,
-            f"Health: {self.health}",
+            f"Reputation: {self.reputation}",
             curses.color_pair(COLOR_PLAYER),
         )
         stdscr.addstr(
             status_y + 2,
             panel_x + 1,
-            f"Speed: {self.speed}",
+            f"Health: {self.health}",
             curses.color_pair(COLOR_PLAYER),
         )
         stdscr.addstr(
             status_y + 3,
             panel_x + 1,
-            f"Pos: ({self.x},{self.y})",
+            f"Shooting Skill: {self.shooting_skill}",
+            curses.color_pair(COLOR_PLAYER),
+        )
+        stdscr.addstr(
+            status_y + 4,
+            panel_x + 1,
+            f"Speed: {self.speed}",
+            curses.color_pair(COLOR_PLAYER),
+        )
+        stdscr.addstr(
+            status_y + 6,
+            panel_x + 1,
+            f"Equipped Weapon:",
+            curses.color_pair(COLOR_PLAYER),
+        )
+        stdscr.addstr(
+            status_y + 7,
+            panel_x + 1,
+            f"{self.equipped_weapon if self.equipped_weapon else 'None'}",
+            curses.color_pair(COLOR_PLAYER),
+        )
+
+        stdscr.addstr(
+            status_y + 8,
+            panel_x + 1,
+            f"Equipped Armor:",
+            curses.color_pair(COLOR_PLAYER),
+        )
+        stdscr.addstr(
+            status_y + 9,
+            panel_x + 1,
+            f"{self.equipped_armor if self.equipped_armor else 'None'}",
             curses.color_pair(COLOR_PLAYER),
         )
 
@@ -74,29 +110,50 @@ class Player:
                     if (new_x, new_y) == room.hallway_entry:
                         self.game.enter_room(room)
                         return
+            else:
+                if game.current_room.exit:
+                    if (new_x, new_y) == game.current_room.exit:
+                        self.game.exit_room(game.current_room)
+                        return
             self.x = new_x
             self.y = new_y
+
+    def draw_target_line(self, stdscr):
+        if self.target_mode:
+            dx = self.target_x - self.x
+            dy = self.target_y - self.y
+
+            steps = max(abs(dx), abs(dy))
+            for i in range(1, steps):
+                x = self.x + int(i * dx / steps)
+                y = self.y + int(i * dy / steps)
+                stdscr.addch(
+                    y + self.offset_y,
+                    x + self.offset_x,
+                    "#",
+                    curses.color_pair(COLOR_PLAYER),
+                )
 
     def toggle_target_mode(self, enemies):
         self.target_mode = not self.target_mode
         if self.target_mode and enemies:
+            self.game.status_line.set_status(
+                "Target mode - Tab: switch target | Enter: attack | f: exit"
+            )
             self.target_index = 0
             self.target_x = enemies[self.target_index].x
             self.target_y = enemies[self.target_index].y
+            self.game.selected_enemy = enemies[self.target_index]
+        else:
+            self.game.selected_enemy = None
+            self.game.status_line.reset_status()
 
     def handle_target_mode(self, key, enemies):
         if key == ord("\t"):
             self.target_index = (self.target_index + 1) % len(enemies)
+            self.game.selected_enemy = enemies[self.target_index]
             self.target_x = enemies[self.target_index].x
             self.target_y = enemies[self.target_index].y
-        elif key == ord("h"):
-            self.target_x = max(0, self.target_x - 1)
-        elif key == ord("j"):
-            self.target_y = min(len(enemies) - 1, self.target_y + 1)
-        elif key == ord("k"):
-            self.target_y = max(0, self.target_y - 1)
-        elif key == ord("l"):
-            self.target_x = min(len(enemies) - 1, self.target_x + 1)
 
     def handle_input(self, key, game):
         if key == ord("h"):

@@ -16,15 +16,14 @@ class EnemiesMixin:
     def create_enemies(self):
         self.enemies = []
 
-        num_enemies = random.randint(5, 10)
+        num_enemies = random.randint(2, 4)
         for _ in range(num_enemies):
             enemy_x = random.randint(1, self.width - 2)
             enemy_y = random.randint(1, self.height - 2)
             speed = random.randint(0, 2)
-            new_enemy = Enemy(enemy_x, enemy_y, speed, 10, self)
+            health = random.randint(5, 10)
+            new_enemy = Enemy(enemy_x, enemy_y, speed, health, self)
             self.enemies.append(new_enemy)
-
-        self.game.add_log_message(f"Generated {num_enemies} enemies.")
 
     def move_enemies(self):
         for enemy in self.enemies:

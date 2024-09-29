@@ -1,5 +1,5 @@
 import curses
-from items import Item
+
 
 class Inventory:
     def __init__(self):
@@ -16,7 +16,6 @@ class Inventory:
 
     def open_inventory(self, stdscr):
         """Opens the inventory modal and allows the player to select items."""
-        curses.curs_set(0)  # Hide the cursor in the inventory
 
         while True:
             stdscr.clear()
@@ -25,20 +24,20 @@ class Inventory:
             # Get user input for navigation
             key = stdscr.getch()
 
-            if key == ord('q'):
+            if key == ord("q"):
                 # Exit inventory
                 break
-            elif key == ord('\n'):
+            elif key == ord("\n"):
                 # Select item with Enter
                 selected_item = self.items[self.selected_index]
                 return selected_item
-            elif key == ord('j'):
+            elif key == ord("j"):
                 # Move down in the list
                 self.selected_index = (self.selected_index + 1) % len(self.items)
-            elif key == ord('k'):
+            elif key == ord("k"):
                 # Move up in the list
                 self.selected_index = (self.selected_index - 1) % len(self.items)
-            elif ord('a') <= key <= ord('z'):
+            elif ord("a") <= key <= ord("z"):
                 # Select an item by pressing its assigned key
                 char_key = chr(key)
                 for i, item in enumerate(self.items):
@@ -61,7 +60,7 @@ class Inventory:
             x = 2
             y = 3 + i
             item_str = str(item)
-            
+
             # Highlight the selected item
             if i == self.selected_index:
                 stdscr.addstr(y, x, item_str, curses.A_REVERSE)

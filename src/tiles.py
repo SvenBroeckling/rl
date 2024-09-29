@@ -1,8 +1,8 @@
 TILES = {
     "wall": "#",
     "hallway": ".",
-    "grass": "'",
-    "lava": "~",
+    "floor": ".",
+    "rumble": ",",
     "door": "+",
     "door_explored": "x",
     "door_cleared": " ",

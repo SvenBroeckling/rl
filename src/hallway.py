@@ -20,10 +20,11 @@ class Hallway(RoomBase):
 
     def draw_room_entries(self):
         for room in self.game.available_rooms:
+            tile = TILES["door_explored"] if room.was_entered else TILES["door"]
             x, y = room.hallway_entry
             self.game.stdscr.addch(
                 y + self.offset_y,
                 x + self.offset_x,
-                TILES["door"],
+                tile,
                 curses.color_pair(3),
             )

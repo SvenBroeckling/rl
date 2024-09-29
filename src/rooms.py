@@ -16,6 +16,9 @@ class Room(RoomBase, EnemiesMixin):
     def name(self):
         return "Room"
 
+    def create_exit(self):
+        self.exit = (self.width // 2, self.height - 1)
+
     def set_random_hallway_entry(self):
         x = random.randint(1, self.game.hallway.width - 2)
         y = random.randint(1, self.game.hallway.height - 2)
@@ -24,7 +27,7 @@ class Room(RoomBase, EnemiesMixin):
     def generate(self):
         return [
             [
-                TILES["grass"] if random.random() > 0.2 else TILES["lava"]
+                TILES["floor"] if random.random() > 0.2 else TILES["rumble"]
                 for _ in range(self.width)
             ]
             for _ in range(self.height)
