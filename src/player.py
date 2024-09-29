@@ -1,6 +1,7 @@
 import curses
 
 from constants import CHARS, COLORS
+from dice import DiceRoll
 from target_mode import TargetMode
 
 
@@ -28,6 +29,50 @@ class Player:
     @property
     def offset_y(self):
         return (self.game.map_height - self.game.current_room.height) // 2
+
+    def move(self, dx, dy, game):
+        new_x = self.x + dx
+        new_y = self.y + dy
+
+        if (
+            0 <= new_x < game.current_room.width
+            and 0 <= new_y < game.current_room.height
+        ):
+            if game.current_room is game.hallway:
+                for room in game.available_rooms:
+                    if (new_x, new_y) == room.hallway_entry:
+                        self.game.enter_room(room)
+                        return
+            else:
+                if game.current_room.exit:
+                    if (new_x, new_y) == game.current_room.exit:
+                        self.game.exit_room(game.current_room)
+                        return
+            self.x = new_x
+            self.y = new_y
+
+    def attack(self, enemy):
+        attack_power = self.shooting_skill
+        successes = DiceRoll(f"{attack_power}d6+0").roll()
+        enemy.health -= successes
+        self.game.add_log_message(f"Player attacked enemy for {successes} damage.")
+        if self.game.selected_enemy.health <= 0:
+            self.game.add_log_message("Enemy defeated.")
+            self.game.current_room.enemies.remove(self.game.selected_enemy)
+
+    def target(self, enemies):
+        self.target_mode = TargetMode(enemies, self.game)
+        self.target_mode.input_loop()
+
+    def handle_input(self, key, game):
+        if key == ord("h"):
+            self.move(-1, 0, game)
+        elif key == ord("j"):
+            self.move(0, 1, game)
+        elif key == ord("k"):
+            self.move(0, -1, game)
+        elif key == ord("l"):
+            self.move(1, 0, game)
 
     def draw(self, stdscr):
         stdscr.addch(
@@ -96,38 +141,3 @@ class Player:
             f"{self.equipped_armor if self.equipped_armor else 'None'}",
             curses.color_pair(COLORS["player"]),
         )
-
-    def move(self, dx, dy, game):
-        new_x = self.x + dx
-        new_y = self.y + dy
-
-        if (
-            0 <= new_x < game.current_room.width
-            and 0 <= new_y < game.current_room.height
-        ):
-            if game.current_room is game.hallway:
-                for room in game.available_rooms:
-                    if (new_x, new_y) == room.hallway_entry:
-                        self.game.enter_room(room)
-                        return
-            else:
-                if game.current_room.exit:
-                    if (new_x, new_y) == game.current_room.exit:
-                        self.game.exit_room(game.current_room)
-                        return
-            self.x = new_x
-            self.y = new_y
-
-    def target(self, enemies):
-        self.target_mode = TargetMode(enemies, self.game)
-        self.target_mode.input_loop()
-
-    def handle_input(self, key, game):
-        if key == ord("h"):
-            self.move(-1, 0, game)
-        elif key == ord("j"):
-            self.move(0, 1, game)
-        elif key == ord("k"):
-            self.move(0, -1, game)
-        elif key == ord("l"):
-            self.move(1, 0, game)

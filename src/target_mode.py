@@ -24,13 +24,7 @@ class TargetMode:
 
     def attack_target(self):
         self.game.selected_enemy = self.enemies[self.target_index]
-        self.game.selected_enemy.health -= self.game.player.shooting_skill
-        self.game.add_log_message(
-            f"Player attacked enemy for {self.game.player.shooting_skill} damage."
-        )
-        if self.game.selected_enemy.health <= 0:
-            self.game.add_log_message("Enemy defeated.")
-            self.enemies.remove(self.game.selected_enemy)
+        self.game.player.attack(self.game.selected_enemy)
         self.disable()
 
     def disable(self):
