@@ -1,6 +1,5 @@
 import curses
 
-from hallway import TILES
 
 PLAYER_CHAR = "@"
 COLOR_PLAYER = 1
@@ -21,15 +20,11 @@ class Player:
 
     @property
     def offset_x(self):
-        if self.game.room:
-            return (self.game.map_width - self.game.room.width) // 2
-        return (self.game.map_width - self.game.hallway.width) // 2
+        return (self.game.map_width - self.game.current_room.width) // 2
 
     @property
     def offset_y(self):
-        if self.game.room:
-            return (self.game.map_height - self.game.room.height) // 2
-        return (self.game.map_height - self.game.hallway.height) // 2
+        return (self.game.map_height - self.game.current_room.height) // 2
 
     def draw(self, stdscr):
         stdscr.addch(
@@ -70,12 +65,11 @@ class Player:
         new_x = self.x + dx
         new_y = self.y + dy
 
-        if game.room:
-            if 0 <= new_x < game.room.width and 0 <= new_y < game.room.height:
-                self.x = new_x
-                self.y = new_y
-        else:
-            if 0 <= new_x < game.hallway.width and 0 <= new_y < game.hallway.height:
+        if (
+            0 <= new_x < game.current_room.width
+            and 0 <= new_y < game.current_room.height
+        ):
+            if game.current_room is game.hallway:
                 for room in game.available_rooms:
                     if (new_x, new_y) == room.hallway_entry:
                         self.game.enter_room(room)

@@ -23,16 +23,13 @@ class Enemy:
         )
 
     def move(self, dx, dy):
-        """Move the enemy by the given delta values."""
         self.x += dx
         self.y += dy
 
     def update_movement(self):
-        """Update the internal movement counter for this enemy."""
         self.current_speed += 1
 
     def can_move(self):
-        """Determine if the enemy can move this turn based on their speed."""
         if self.current_speed >= self.speed:
             self.current_speed = 0  # Reset speed counter after moving
             return True

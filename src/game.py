@@ -3,6 +3,7 @@ import curses
 from hallway import Hallway
 from inventory import Inventory
 from items import Item
+from mixins import EnemiesMixin
 from player import Player
 from rooms import Room
 
@@ -14,11 +15,13 @@ class Game:
         self.screen_height, self.screen_width = stdscr.getmaxyx()
         self.update_game_dimensions()
 
-        self.hallway = Hallway(self.map_width, self.map_height, self)
-        self.room: Room | None = None
+        self.hallway = Hallway(self)
+        self.current_room = self.hallway
         self.available_rooms = []
 
-        self.player = Player(self.hallway.width // 2, self.hallway.height // 2, self)
+        self.player = Player(
+            self.current_room.width // 2, self.current_room.height // 2, self
+        )
         self.inventory = Inventory()
 
         self.inventory.add_item(Item("a", "Health Potion", 2))
@@ -54,15 +57,12 @@ class Game:
         self.map_height = self.screen_height - 2
 
     def draw_map(self):
-        if not self.room:
-            self.hallway.draw(self.stdscr)
-        else:
-            self.room.draw(self.stdscr)
+        self.current_room.draw(self.stdscr)
 
     def draw_entities(self):
         self.player.draw(self.stdscr)
-        if self.room:
-            self.room.draw_enemies(self.stdscr)
+        if isinstance(self.current_room, EnemiesMixin):
+            self.current_room.draw_enemies(self.stdscr)
 
     def draw_side_panel(self):
         panel_x = self.map_width
@@ -70,10 +70,7 @@ class Game:
         self.draw_log(panel_x)
 
     def draw_room_name(self):
-        if self.room:
-            self.stdscr.addstr(0, 0, self.room.name, curses.color_pair(7))
-        else:
-            self.stdscr.addstr(0, 0, self.hallway.name, curses.color_pair(7))
+        self.stdscr.addstr(0, 0, self.current_room.name, curses.color_pair(7))
 
     def draw_log(self, panel_x):
         log_start_y = self.screen_height - 6
@@ -89,9 +86,9 @@ class Game:
         self.log_messages.append(message)
 
     def enter_room(self, room):
-        self.room = room
-        self.player.x = self.room.width // 2
-        self.player.y = self.room.height // 2
+        self.current_room = room
+        self.player.x = self.current_room.width // 2
+        self.player.y = self.current_room.height // 2
         self.add_log_message("Entered a room.")
 
     def game_loop(self):
@@ -115,8 +112,8 @@ class Game:
             if key == ord("q"):
                 break
             elif key == ord("f"):
-                if self.room:
-                    self.player.toggle_target_mode(self.room.enemies)
+                if isinstance(self.current_room, EnemiesMixin):
+                    self.player.toggle_target_mode(self.current_room.enemies)
             elif key == ord("i"):
                 selected_item = self.inventory.open_inventory(self.stdscr)
                 if selected_item:
@@ -124,8 +121,8 @@ class Game:
 
             if not self.player.target_mode:
                 self.player.handle_input(key, self)
-                if self.room:
-                    self.room.move_enemies()
+                if isinstance(self.current_room, EnemiesMixin):
+                    self.current_room.move_enemies()
             else:
-                if self.room:
-                    self.player.handle_target_mode(key, self.room.enemies)
+                if isinstance(self.current_room, EnemiesMixin):
+                    self.player.handle_target_mode(key, self.current_room.enemies)
