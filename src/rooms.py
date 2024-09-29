@@ -5,13 +5,21 @@ from tiles import TILES
 
 
 class Room:
-    def __init__(self, width, height, game):
-        self.height = height
-        self.width = width
+    def __init__(self, game):
+        self.height = random.randint(10, game.map_height)
+        self.width = random.randint(10, game.map_width)
+        self.name = "Room"
         self.game = game
+        self.hallway_entry = (0, 0)
         self.enemies = []
         self.tiles = self.generate()
         self.create_enemies()
+        self.set_random_hallway_entry()
+
+    def set_random_hallway_entry(self):
+        x = random.randint(1, self.game.hallway.width - 2)
+        y = random.randint(1, self.game.hallway.height - 2)
+        self.hallway_entry = (x, y)
 
     def generate(self):
         return [

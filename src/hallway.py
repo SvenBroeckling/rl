@@ -1,28 +1,50 @@
-from rooms import Room
+import curses
+import random
+
 from tiles import TILES
 
 
 class Hallway:
-    def __init__(self, map_width, map_height):
-        self.map_width = map_width
-        self.map_height = map_height
+    def __init__(self, map_width, map_height, game):
+        self.width = random.randint(10, map_width)
+        self.height = random.randint(10, map_height)
+        self.name = "Hallway"
+        self.game = game
         self.tiles = self.generate()
 
     def generate(self):
-        # Generates the overworld map with doors leading to rooms
-        overworld = [
-            [
-                TILES["hallway"] if x % 5 != 0 or y % 5 != 0 else TILES["door"]
-                for x in range(self.map_width)
-            ]
-            for y in range(self.map_height)
+        return [
+            [TILES["hallway"] for x in range(self.width)] for y in range(self.height)
         ]
-        return overworld
+
+    @property
+    def offset_x(self):
+        return (self.game.map_width - self.width) // 2
+
+    @property
+    def offset_y(self):
+        return (self.game.map_height - self.height) // 2
 
     def draw(self, stdscr):
         for y, row in enumerate(self.tiles):
             for x, tile in enumerate(row):
-                if tile == TILES["hallway"]:
-                    stdscr.addch(y, x, tile)
-                elif tile == TILES["door"]:
-                    stdscr.addch(y, x, tile)
+                stdscr.addch(y + self.offset_y, x + self.offset_x, tile)
+
+        for y in range(self.height):
+            stdscr.addch(y + self.offset_y, self.offset_x, "|")
+            stdscr.addch(y + self.offset_y, self.width - 1 + self.offset_x, "|")
+        for x in range(self.width):
+            stdscr.addch(self.offset_y, x + self.offset_x, "-")
+            stdscr.addch(self.height - 1 + self.offset_y, x + self.offset_x, "-")
+
+        self.draw_room_entries()
+
+    def draw_room_entries(self):
+        for room in self.game.available_rooms:
+            x, y = room.hallway_entry
+            self.game.stdscr.addch(
+                y + self.offset_y,
+                x + self.offset_x,
+                TILES["door"],
+                curses.color_pair(3),
+            )

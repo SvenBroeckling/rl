@@ -1,5 +1,4 @@
 import curses
-import random
 
 from hallway import Hallway
 from inventory import Inventory
@@ -15,11 +14,11 @@ class Game:
         self.screen_height, self.screen_width = stdscr.getmaxyx()
         self.update_game_dimensions()
 
-        self.hallway = Hallway(self.map_width, self.map_height)
+        self.hallway = Hallway(self.map_width, self.map_height, self)
         self.room: Room | None = None
+        self.available_rooms = []
 
-        self.player = Player(self.map_width // 2, self.map_height // 2, self)
-
+        self.player = Player(self.hallway.width // 2, self.hallway.height // 2, self)
         self.inventory = Inventory()
 
         self.inventory.add_item(Item("a", "Health Potion", 2))
@@ -32,6 +31,10 @@ class Game:
         self.target_x = None
         self.target_y = None
         self.log_messages = []
+
+    def create_available_rooms(self):
+        for _ in range(10):
+            self.available_rooms.append(Room(self))
 
     def init_colors(self):
         curses.start_color()
@@ -66,12 +69,15 @@ class Game:
         self.player.draw_status(self.stdscr, panel_x)
         self.draw_log(panel_x)
 
+    def draw_room_name(self):
+        if self.room:
+            self.stdscr.addstr(0, 0, self.room.name, curses.color_pair(7))
+        else:
+            self.stdscr.addstr(0, 0, self.hallway.name, curses.color_pair(7))
+
     def draw_log(self, panel_x):
-        log_start_y = self.screen_height - 5
-        self.stdscr.addstr(
-            log_start_y, panel_x + 1, "Log", curses.color_pair(7) | curses.A_BOLD
-        )
-        for i, message in enumerate(self.log_messages[-3:], 1):
+        log_start_y = self.screen_height - 6
+        for i, message in enumerate(self.log_messages[-4:], 1):
             self.stdscr.addstr(
                 log_start_y + i,
                 panel_x + 1,
@@ -82,26 +88,25 @@ class Game:
     def add_log_message(self, message):
         self.log_messages.append(message)
 
-    def enter_room(self):
-        self.room = Room(
-            random.randint(10, self.map_width),
-            random.randint(10, self.map_height),
-            self,
-        )
-
+    def enter_room(self, room):
+        self.room = room
         self.player.x = self.room.width // 2
         self.player.y = self.room.height // 2
-
         self.add_log_message("Entered a room.")
 
     def game_loop(self):
         self.init_colors()
+        self.create_available_rooms()
         self.add_log_message("Welcome to the dungeon!")
+        self.add_log_message("Move with arrow keys")
+        self.add_log_message("Press 'f' to target")
+        self.add_log_message("Press 'q' to quit")
 
         while True:
             self.stdscr.clear()
             self.draw_map()
             self.draw_entities()
+            self.draw_room_name()
             self.draw_side_panel()
 
             self.stdscr.refresh()
