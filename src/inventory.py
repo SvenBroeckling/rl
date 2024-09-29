@@ -2,7 +2,8 @@ import curses
 
 
 class Inventory:
-    def __init__(self):
+    def __init__(self, game):
+        self.game = game
         self.items = []
         self.selected_index = 0
 
@@ -27,6 +28,8 @@ class Inventory:
                 break
             elif key == ord("\n"):
                 selected_item = self.items[self.selected_index]
+                if selected_item.is_weapon:
+                    self.game.player.equip_weapon(selected_item)
                 return selected_item
             elif key == ord("j"):
                 self.selected_index = (self.selected_index + 1) % len(self.items)

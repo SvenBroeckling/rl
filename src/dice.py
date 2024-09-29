@@ -7,7 +7,7 @@ class DiceRoll:
         self.result_sum = 0
 
         dice, modifier = formula.split("+")
-        sides, count = dice.split("d")
+        count, sides = dice.split("d")
         self.dice = [Die(int(sides)) for _ in range(int(count))]
         self.minimum_roll = minimum_roll
         self.modifier = int(modifier)
@@ -31,6 +31,6 @@ class Die:
         roll = random.randint(1, self.sides)
         result += roll
         while roll == self.sides:
-            roll += random.randint(1, self.sides)
+            roll = random.randint(1, self.sides)
             result += roll
         return result

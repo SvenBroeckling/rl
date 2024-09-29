@@ -27,11 +27,10 @@ class Game:
             self.current_room.width // 2, self.current_room.height // 2, self
         )
         self.selected_enemy = None
-        self.inventory = Inventory()
+        self.inventory = Inventory(self)
 
         self.inventory.add_item(Item("a", "Health Potion", 2))
-        self.inventory.add_item(Item("b", "Mana Potion", 3))
-        self.inventory.add_item(Item("c", "Sword"))
+        self.inventory.add_item(Item("c", "Pistol", value=2, is_weapon=True))
 
         # Initialize game states
         self.target_mode = None

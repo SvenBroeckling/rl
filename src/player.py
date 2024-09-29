@@ -30,6 +30,9 @@ class Player:
     def offset_y(self):
         return (self.game.map_height - self.game.current_room.height) // 2
 
+    def equip_weapon(self, weapon):
+        self.equipped_weapon = weapon
+
     def move(self, dx, dy, game):
         new_x = self.x + dx
         new_y = self.y + dy
@@ -54,8 +57,11 @@ class Player:
     def attack(self, enemy):
         attack_power = self.shooting_skill
         successes = DiceRoll(f"{attack_power}d6+0").roll()
+        self.game.log_messages.append(
+            f"Player attacks enemy with {successes} successes."
+        )
         enemy.health -= successes
-        self.game.add_log_message(f"Player attacked enemy for {successes} damage.")
+        self.game.add_log_message(f"Player hits enemy for {successes} successes.")
         if self.game.selected_enemy.health <= 0:
             self.game.add_log_message("Enemy defeated.")
             self.game.current_room.enemies.remove(self.game.selected_enemy)
