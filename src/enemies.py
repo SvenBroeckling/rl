@@ -13,6 +13,7 @@ class Enemy:
         self.current_speed = 0  # Current speed counter
         self.health = health
         self.shooting_skill = 1
+        self.reputation_value = 1
         self.equipped_weapon = None
         self.equipped_armor = None
 
@@ -44,15 +45,21 @@ class Enemy:
             f"Shooting Skill: {self.shooting_skill}",
             curses.color_pair(COLORS["enemy"]),
         )
+        stdscr.addstr(
+            status_y + 3,
+            panel_x + 1,
+            f"Reputation: {self.reputation_value}",
+            curses.color_pair(COLORS["enemy"]),
+        )
 
         stdscr.addstr(
-            status_y + 4,
+            status_y + 5,
             panel_x + 1,
             f"Equipped Weapon:",
             curses.color_pair(COLORS["enemy"]),
         )
         stdscr.addstr(
-            status_y + 5,
+            status_y + 6,
             panel_x + 1,
             f"{self.equipped_weapon if self.equipped_weapon else 'None'}",
             curses.color_pair(COLORS["enemy"]),

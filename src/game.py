@@ -1,8 +1,9 @@
 import curses
+import random
 
 from hallway import Hallway
 from inventory import Inventory
-from items import Item
+from items import Item, Weapon
 from mixins import EnemiesMixin
 from player import Player
 from rooms import Room
@@ -28,9 +29,11 @@ class Game:
         )
         self.selected_enemy = None
         self.inventory = Inventory(self)
+        self.available_items = self.get_available_items()
 
-        self.inventory.add_item(Item("a", "Health Potion", 2))
-        self.inventory.add_item(Item("c", "Pistol", value=2, is_weapon=True))
+        for i in range(3):
+            item = random.choice(self.available_items)
+            self.inventory.add_item(item())
 
         # Initialize game states
         self.target_mode = None
@@ -38,6 +41,13 @@ class Game:
         self.target_x = None
         self.target_y = None
         self.log_messages = []
+
+    def get_available_items(self):
+        return [
+            cls
+            for cls in Item.__subclasses__()
+            if cls.__name__ not in ["Weapon", "Armor"]
+        ]
 
     def create_available_rooms(self):
         for _ in range(10):
@@ -113,7 +123,7 @@ class Game:
         elif key == ord("i"):
             selected_item = self.inventory.open_inventory(self.stdscr)
             if selected_item:
-                self.add_log_message(f"Selected {selected_item.name}")
+                selected_item.apply(self.player)
 
         self.player.handle_input(key, self)
         if isinstance(self.current_room, EnemiesMixin):

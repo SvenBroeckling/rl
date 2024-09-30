@@ -4,19 +4,33 @@ import curses
 class Inventory:
     def __init__(self, game):
         self.game = game
-        self.items = []
-        self.selected_index = 0
+        self.items = {}  # {identifier: {"key": key, "item": item, "amount":amount}}
+        self.selected_identifier = None
+
+    @property
+    def next_free_key(self):
+        """Returns the next available key for an item."""
+        available_letters = "abcdefghilmnopqrstuvwxyzABCDEFGHILMNOPQRSTUVWXYZ"
+        for letter in available_letters:
+            if letter not in self.items:
+                return letter
+        return None
 
     def add_item(self, item):
         """Adds an item to the inventory. If it exists, increases its amount."""
-        for inv_item in self.items:
-            if inv_item.key == item.key:
-                inv_item.amount += item.amount
+        for key, item_data in self.items.items():
+            if item_data["item"] == item:
+                item_data["amount"] += 1
                 return
-        self.items.append(item)
+        key = self.next_free_key
+        if key:
+            self.items[key] = {"key": key, "item": item, "amount": 1}
 
     def open_inventory(self, stdscr):
         """Opens the inventory modal and allows the player to select items."""
+
+        if self.selected_identifier is None and self.items:
+            self.selected_identifier = [key for key in self.items.keys()][0]
 
         while True:
             stdscr.clear()
@@ -27,21 +41,22 @@ class Inventory:
             if key == ord("q"):
                 break
             elif key == ord("\n"):
-                selected_item = self.items[self.selected_index]
-                if selected_item.is_weapon:
-                    self.game.player.equip_weapon(selected_item)
-                return selected_item
+                return self.items[self.selected_identifier]["item"]
             elif key == ord("j"):
-                self.selected_index = (self.selected_index + 1) % len(self.items)
+                keys = list(self.items.keys())
+                index = keys.index(self.selected_identifier)
+                index = (index + 1) % len(keys)
+                self.selected_identifier = keys[index]
             elif key == ord("k"):
-                self.selected_index = (self.selected_index - 1) % len(self.items)
+                keys = list(self.items.keys())
+                index = keys.index(self.selected_identifier)
+                index = (index - 1) % len(keys)
+                self.selected_identifier = keys[index]
             elif ord("a") <= key <= ord("z"):
                 char_key = chr(key)
-                for i, item in enumerate(self.items):
-                    if item.key == char_key:
-                        self.selected_index = i
-                        return item
-
+                item = self.get_item_by_key(char_key)
+                if item:
+                    return item
             stdscr.refresh()
 
     def draw_inventory(self, stdscr):
@@ -50,19 +65,20 @@ class Inventory:
         title = "Inventory (Press 'q' to exit)"
         stdscr.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
 
-        for i, item in enumerate(self.items):
+        for i, (identifier, item) in enumerate(self.items.items()):
             x = 2
             y = 3 + i
-            item_str = str(item)
+            amount_str = f"x{item['amount']}"
+            item_str = f"{item["key"]} - {item["item"].name} ({amount_str})"
 
-            if i == self.selected_index:
+            if item == self.selected_identifier:
                 stdscr.addstr(y, x, item_str, curses.A_REVERSE)
             else:
                 stdscr.addstr(y, x, item_str)
 
     def get_item_by_key(self, key):
         """Retrieve an item by its key (used for direct selection)."""
-        for item in self.items:
-            if item.key == key:
-                return item
+        for item_data in self.items.values():
+            if item_data["key"] == key:
+                return item_data["item"]
         return None

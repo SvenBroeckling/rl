@@ -16,6 +16,10 @@ class Room(RoomBase, EnemiesMixin):
     def name(self):
         return "Room"
 
+    @property
+    def is_cleared(self):
+        return not self.enemies
+
     def create_exit(self):
         self.exit = (self.width // 2, self.height - 1)
 

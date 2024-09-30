@@ -33,6 +33,9 @@ class Player:
     def equip_weapon(self, weapon):
         self.equipped_weapon = weapon
 
+    def equip_armor(self, armor):
+        self.equipped_armor = armor
+
     def move(self, dx, dy, game):
         new_x = self.x + dx
         new_y = self.y + dy
@@ -54,21 +57,34 @@ class Player:
             self.x = new_x
             self.y = new_y
 
+    @property
+    def attack_power(self):
+        if self.equipped_weapon:
+            return self.shooting_skill + self.equipped_weapon.damage_potential
+        return self.shooting_skill
+
     def attack(self, enemy):
-        attack_power = self.shooting_skill
-        successes = DiceRoll(f"{attack_power}d6+0").roll()
-        self.game.log_messages.append(
-            f"Player attacks enemy with {successes} successes."
-        )
-        enemy.health -= successes
-        self.game.add_log_message(f"Player hits enemy for {successes} successes.")
-        if self.game.selected_enemy.health <= 0:
+        roll_string = f"{self.attack_power}d6"
+        roll = DiceRoll(roll_string).roll()
+        log_string = f"Attacking with {roll_string}: [{roll.result_string}] ->"
+        if roll.successes == 0 and roll.critical_hits == 0:
+            log_string += " Miss!"
+        else:
+            log_string += f" Hit! Dealing {roll.successes} damage."
+            if roll.critical_hits:
+                log_string += f" {roll.critical_hits} critical hits!"
+
+        enemy.health -= roll.successes
+        self.game.add_log_message(log_string)
+        if enemy.health <= 0:
             self.game.add_log_message("Enemy defeated.")
-            self.game.current_room.enemies.remove(self.game.selected_enemy)
+            self.reputation += enemy.reputation_value
+            self.game.current_room.enemies.remove(enemy)
 
     def target(self, enemies):
-        self.target_mode = TargetMode(enemies, self.game)
-        self.target_mode.input_loop()
+        if enemies:
+            self.target_mode = TargetMode(enemies, self.game)
+            self.target_mode.input_loop()
 
     def handle_input(self, key, game):
         if key == ord("h"):
