@@ -1,9 +1,10 @@
 import curses
 import random
 
+import constants
 from hallway import Hallway
 from inventory import Inventory
-from items import Item, Weapon
+from items import Armor, Item, Weapon
 from mixins import EnemiesMixin
 from player import Player
 from rooms import Room
@@ -11,12 +12,14 @@ from status_line import StatusLine
 
 
 class Game:
-    def __init__(self, stdscr):
+    def __init__(self, stdscr, no_emoji=False):
         self.stdscr = stdscr
         curses.curs_set(0)
         self.side_panel_width = 25
         self.screen_height, self.screen_width = stdscr.getmaxyx()
         self.update_game_dimensions()
+
+        self.init_resources(no_emoji)
 
         self.status_line = StatusLine(stdscr)
 
@@ -30,10 +33,13 @@ class Game:
         self.selected_enemy = None
         self.inventory = Inventory(self)
         self.available_items = self.get_available_items()
+        self.available_weapons = self.get_available_weapons()
+        self.available_armor = self.get_available_armor()
 
-        for i in range(3):
+        for _ in range(3):
             item = random.choice(self.available_items)
-            self.inventory.add_item(item())
+            self.inventory.add_item(item)
+        self.inventory.add_item(random.choice(self.available_weapons))
 
         # Initialize game states
         self.target_mode = None
@@ -42,16 +48,14 @@ class Game:
         self.target_y = None
         self.log_messages = []
 
-    def get_available_items(self):
-        return [
-            cls
-            for cls in Item.__subclasses__()
-            if cls.__name__ not in ["Weapon", "Armor"]
-        ]
-
-    def create_available_rooms(self):
-        for _ in range(10):
-            self.available_rooms.append(Room(self))
+    def init_resources(self, no_emoji):
+        if no_emoji:
+            self.TILES = constants.TILES_ASCII
+            self.CHARS = constants.CHARS_ASCII
+        else:
+            self.TILES = constants.TILES_EMOJI
+            self.CHARS = constants.CHARS_EMOJI
+        self.COLORS = constants.COLORS
 
     def init_colors(self):
         curses.start_color()
@@ -64,6 +68,23 @@ class Game:
         curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(8, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(9, curses.COLOR_WHITE, curses.COLOR_BLACK)
+
+    def get_available_weapons(self):
+        return [cls() for cls in Weapon.__subclasses__()]
+
+    def get_available_armor(self):
+        return [cls() for cls in Armor.__subclasses__()]
+
+    def get_available_items(self):
+        return [
+            cls()
+            for cls in Item.__subclasses__()
+            if cls.__name__ not in ["Weapon", "Armor"]
+        ]
+
+    def create_available_rooms(self):
+        for _ in range(10):
+            self.available_rooms.append(Room(self))
 
     def update_game_dimensions(self):
         self.screen_height, self.screen_width = self.stdscr.getmaxyx()

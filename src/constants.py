@@ -1,11 +1,40 @@
-TILES = {
+TILES_EMOJI = {
+    "wall": "🧱",
+    "hallway": "·",
+    "floor": "·",
+    "rumble": ".",
+    "door": "╬",
+    "door_explored": "┼",
+    "door_cleared": "╳",
+    "target_line": "·",
+}
+
+TILES_ASCII = {
     "wall": "#",
     "hallway": ".",
     "floor": ".",
     "rumble": ",",
-    "door": "+",
+    "door": "X",
     "door_explored": "x",
     "door_cleared": " ",
+    "target_line": "#",
+}
+
+
+CHARS_EMOJI = {
+    "player": "🧍",
+    "enemy": "👹",
+    "item": "📦",
+    "message": "M",
+    "status": "S",
+}
+
+CHARS_ASCII = {
+    "player": "@",
+    "enemy": "E",
+    "item": "!",
+    "message": "M",
+    "status": "S",
 }
 
 COLORS = {
@@ -14,12 +43,4 @@ COLORS = {
     "item": 3,
     "message": 4,
     "status": 5,
-}
-
-CHARS = {
-    "player": "@",
-    "enemy": "E",
-    "item": "!",
-    "message": "M",
-    "status": "S",
 }

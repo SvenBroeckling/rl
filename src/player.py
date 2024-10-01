@@ -1,6 +1,5 @@
 import curses
 
-from constants import CHARS, COLORS
 from dice import DiceRoll
 from target_mode import TargetMode
 
@@ -10,7 +9,7 @@ class Player:
         self.x = x
         self.y = y
         self.game = game
-        self.char = CHARS["player"]
+        self.char = game.CHARS["player"]
         self.speed = 1
         self.health = 10
         self.reputation = 0
@@ -101,7 +100,7 @@ class Player:
             self.y + self.offset_y,
             self.x + self.offset_x,
             self.char,
-            curses.color_pair(COLORS["player"]),
+            curses.color_pair(self.game.COLORS["player"]),
         )
         if self.target_mode:
             self.target_mode.draw_target_line()
@@ -112,54 +111,54 @@ class Player:
             status_y,
             panel_x + 1,
             "Status",
-            curses.color_pair(COLORS["player"]) | curses.A_BOLD,
+            curses.color_pair(self.game.COLORS["player"]) | curses.A_BOLD,
         )
         stdscr.addstr(
             status_y + 1,
             panel_x + 1,
             f"Reputation: {self.reputation}",
-            curses.color_pair(COLORS["player"]),
+            curses.color_pair(self.game.COLORS["player"]),
         )
         stdscr.addstr(
             status_y + 2,
             panel_x + 1,
             f"Health: {self.health}",
-            curses.color_pair(COLORS["player"]),
+            curses.color_pair(self.game.COLORS["player"]),
         )
         stdscr.addstr(
             status_y + 3,
             panel_x + 1,
             f"Shooting Skill: {self.shooting_skill}",
-            curses.color_pair(COLORS["player"]),
+            curses.color_pair(self.game.COLORS["player"]),
         )
         stdscr.addstr(
             status_y + 4,
             panel_x + 1,
             f"Speed: {self.speed}",
-            curses.color_pair(COLORS["player"]),
+            curses.color_pair(self.game.COLORS["player"]),
         )
         stdscr.addstr(
             status_y + 6,
             panel_x + 1,
             f"Equipped Weapon:",
-            curses.color_pair(COLORS["player"]),
+            curses.color_pair(self.game.COLORS["player"]),
         )
         stdscr.addstr(
             status_y + 7,
             panel_x + 1,
-            f"{self.equipped_weapon if self.equipped_weapon else 'None'}",
-            curses.color_pair(COLORS["player"]),
+            f"{self.equipped_weapon.name if self.equipped_weapon else 'None'}",
+            curses.color_pair(self.game.COLORS["player"]),
         )
 
         stdscr.addstr(
             status_y + 8,
             panel_x + 1,
             f"Equipped Armor:",
-            curses.color_pair(COLORS["player"]),
+            curses.color_pair(self.game.COLORS["player"]),
         )
         stdscr.addstr(
             status_y + 9,
             panel_x + 1,
             f"{self.equipped_armor if self.equipped_armor else 'None'}",
-            curses.color_pair(COLORS["player"]),
+            curses.color_pair(self.game.COLORS["player"]),
         )

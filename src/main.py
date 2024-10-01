@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 import curses
+import sys
 
 from game import Game
 
 
-def main(stdscr):
-    game = Game(stdscr)
+def main(stdscr, no_emoji):
+    game = Game(stdscr, no_emoji)
     game.game_loop()
 
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    no_emoji = False
+
+    if len(sys.argv) > 1 and sys.argv[1] == "--no-emoji":
+        no_emoji = True
+    curses.wrapper(main, no_emoji)

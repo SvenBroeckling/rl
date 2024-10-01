@@ -1,14 +1,12 @@
 import curses
 
-from constants import CHARS, COLORS
-
 
 class Enemy:
     def __init__(self, x, y, speed, health, room):
         self.x = x
         self.y = y
         self.room = room
-        self.char = CHARS["enemy"]
+        self.char = room.game.CHARS["enemy"]
         self.speed = speed  # Speed defines how often the enemy moves (0 is fastest)
         self.current_speed = 0  # Current speed counter
         self.health = health
@@ -22,7 +20,7 @@ class Enemy:
             self.y + self.room.offset_y,
             self.x + self.room.offset_x,
             self.char,
-            curses.color_pair(COLORS["enemy"]),
+            curses.color_pair(self.room.game.COLORS["enemy"]),
         )
 
     def draw_status(self, stdscr, panel_x):
@@ -31,51 +29,51 @@ class Enemy:
             status_y,
             panel_x + 1,
             "Enemy",
-            curses.color_pair(COLORS["enemy"]) | curses.A_BOLD,
+            curses.color_pair(self.room.game.COLORS["enemy"]) | curses.A_BOLD,
         )
         stdscr.addstr(
             status_y + 1,
             panel_x + 1,
             f"Health: {self.health}",
-            curses.color_pair(COLORS["enemy"]),
+            curses.color_pair(self.room.game.COLORS["enemy"]),
         )
         stdscr.addstr(
             status_y + 2,
             panel_x + 1,
             f"Shooting Skill: {self.shooting_skill}",
-            curses.color_pair(COLORS["enemy"]),
+            curses.color_pair(self.room.game.COLORS["enemy"]),
         )
         stdscr.addstr(
             status_y + 3,
             panel_x + 1,
             f"Reputation: {self.reputation_value}",
-            curses.color_pair(COLORS["enemy"]),
+            curses.color_pair(self.room.game.COLORS["enemy"]),
         )
 
         stdscr.addstr(
             status_y + 5,
             panel_x + 1,
             f"Equipped Weapon:",
-            curses.color_pair(COLORS["enemy"]),
+            curses.color_pair(self.room.game.COLORS["enemy"]),
         )
         stdscr.addstr(
             status_y + 6,
             panel_x + 1,
             f"{self.equipped_weapon if self.equipped_weapon else 'None'}",
-            curses.color_pair(COLORS["enemy"]),
+            curses.color_pair(self.room.game.COLORS["enemy"]),
         )
 
         stdscr.addstr(
             status_y + 6,
             panel_x + 1,
             f"Equipped Armor:",
-            curses.color_pair(COLORS["enemy"]),
+            curses.color_pair(self.room.game.COLORS["enemy"]),
         )
         stdscr.addstr(
             status_y + 7,
             panel_x + 1,
             f"{self.equipped_armor if self.equipped_armor else 'None'}",
-            curses.color_pair(COLORS["enemy"]),
+            curses.color_pair(self.room.game.COLORS["enemy"]),
         )
 
     def move(self, dx, dy):

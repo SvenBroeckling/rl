@@ -1,7 +1,5 @@
 import curses
 
-from constants import COLORS
-
 
 class TargetMode:
     def __init__(self, enemies, game):
@@ -61,6 +59,6 @@ class TargetMode:
             self.game.stdscr.addch(
                 y + self.game.player.offset_y,
                 x + self.game.player.offset_x,
-                "#",
-                curses.color_pair(COLORS["player"]),
+                self.game.TILES["target_line"],
+                curses.color_pair(self.game.COLORS["player"]),
             )

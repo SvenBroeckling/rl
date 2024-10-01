@@ -1,6 +1,5 @@
 import random
 
-from constants import TILES
 from mixins import EnemiesMixin
 from room_base import RoomBase
 
@@ -31,7 +30,11 @@ class Room(RoomBase, EnemiesMixin):
     def generate(self):
         return [
             [
-                TILES["floor"] if random.random() > 0.2 else TILES["rumble"]
+                (
+                    self.game.TILES["floor"]
+                    if random.random() > 0.2
+                    else self.game.TILES["rumble"]
+                )
                 for _ in range(self.width)
             ]
             for _ in range(self.height)

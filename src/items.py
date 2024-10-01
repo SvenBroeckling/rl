@@ -12,6 +12,7 @@ class Weapon(Item):
     damage_potential = 0
     range = 1
     piercing = 0
+    capacity = 0
 
     def apply(self, player):
         player.equip_weapon(self)
@@ -34,17 +35,19 @@ class HealingPotion(Item):
         player.health += 5
 
 
-class Rock(Weapon):
-    identifier = "weapon_rock"
-    name = "Rock"
-    description = "A fist-sized rock, good for throwing."
-    range = 10
+class Pistol(Weapon):
+    identifier = "weapon_pistol"
+    name = "Pistol"
+    description = "A standard 9mm handgun"
+    range = 12
     damage_potential = 1
+    capacity = 6
 
 
-class Sword(Weapon):
-    identifier = "weapon_sword"
-    name = "Sword"
-    description = "A short sword."
-    range = 1
-    damage_potential = 2
+class AssaultRifle(Weapon):
+    identifier = "weapon_ar"
+    name = "Assault Rifle"
+    description = "A 9mm assault rifle."
+    range = 20
+    damage_potential = 3
+    capacity = 24
