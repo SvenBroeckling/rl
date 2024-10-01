@@ -4,25 +4,39 @@ import curses
 class TargetMode:
     def __init__(self, enemies, game):
         self.enemies = enemies
-        self.target_index = 0
         self.game = game
-        self.target = 0
         self.game.status_line.set_status(
             "Target mode - Tab: switch target | f: attack | ESC: exit"
         )
-        self.target_x = enemies[self.target_index].x
-        self.target_y = enemies[self.target_index].y
-        if self.has_line_of_sight(self.target_x, self.target_y):
-            self.game.selected_enemy = enemies[self.target_index]
+        self.target_index = self.target_index_for_enemy(self.find_closest_enemy())
+        self.select_target(self.enemies[self.target_index])
 
-    def select_target(self):
-        self.target_index = (self.target_index + 1) % len(self.enemies)
-        self.target_x = self.enemies[self.target_index].x
-        self.target_y = self.enemies[self.target_index].y
+    def target_index_for_enemy(self, enemy):
+        return self.enemies.index(enemy)
+
+    def find_closest_enemy(self):
+        closest_enemy = None
+        closest_distance = 9999
+        for enemy in self.enemies:
+            distance = abs(enemy.x - self.game.player.x) + abs(
+                enemy.y - self.game.player.y
+            )
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_enemy = enemy
+        return closest_enemy
+
+    def select_target(self, enemy):
+        self.target_x = enemy.x
+        self.target_y = enemy.y
         if self.has_line_of_sight(self.target_x, self.target_y):
-            self.game.selected_enemy = self.enemies[self.target_index]
+            self.game.selected_enemy = enemy
         else:
             self.game.selected_enemy = None
+
+    def next_target(self):
+        self.target_index = (self.target_index + 1) % len(self.enemies)
+        self.select_target(self.enemies[self.target_index])
 
     def attack_target(self):
         if not self.game.selected_enemy:
@@ -48,7 +62,7 @@ class TargetMode:
                 self.disable()
                 break
             if key == ord("\t"):
-                self.select_target()
+                self.next_target()
             elif key == ord("f"):
                 self.attack_target()
                 self.disable()
