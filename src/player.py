@@ -38,23 +38,21 @@ class Player:
     def move(self, dx, dy, game):
         new_x = self.x + dx
         new_y = self.y + dy
+        if not game.current_room.is_walkable(new_x, new_y):
+            return
 
-        if (
-            0 <= new_x < game.current_room.width
-            and 0 <= new_y < game.current_room.height
-        ):
-            if game.current_room is game.hallway:
-                for room in game.available_rooms:
-                    if (new_x, new_y) == room.hallway_entry:
-                        self.game.enter_room(room)
-                        return
-            else:
-                if game.current_room.exit:
-                    if (new_x, new_y) == game.current_room.exit:
-                        self.game.exit_room(game.current_room)
-                        return
-            self.x = new_x
-            self.y = new_y
+        if game.current_room is game.hallway:
+            for room in game.available_rooms:
+                if (new_x, new_y) == room.hallway_entry:
+                    self.game.enter_room(room)
+                    return
+        else:
+            if game.current_room.exit:
+                if (new_x, new_y) == game.current_room.exit:
+                    self.game.exit_room(game.current_room)
+                    return
+        self.x = new_x
+        self.y = new_y
 
     @property
     def attack_power(self):

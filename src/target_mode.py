@@ -12,15 +12,23 @@ class TargetMode:
         )
         self.target_x = enemies[self.target_index].x
         self.target_y = enemies[self.target_index].y
-        self.game.selected_enemy = enemies[self.target_index]
+        if self.has_line_of_sight(self.target_x, self.target_y):
+            self.game.selected_enemy = enemies[self.target_index]
 
     def select_target(self):
         self.target_index = (self.target_index + 1) % len(self.enemies)
-        self.game.selected_enemy = self.enemies[self.target_index]
         self.target_x = self.enemies[self.target_index].x
         self.target_y = self.enemies[self.target_index].y
+        if self.has_line_of_sight(self.target_x, self.target_y):
+            self.game.selected_enemy = self.enemies[self.target_index]
+        else:
+            self.game.selected_enemy = None
 
     def attack_target(self):
+        if not self.game.selected_enemy:
+            self.game.add_log_message("No line of sight to target.")
+            self.disable()
+            return
         self.game.selected_enemy = self.enemies[self.target_index]
         self.game.player.attack(self.game.selected_enemy)
         self.disable()
@@ -46,6 +54,22 @@ class TargetMode:
                 self.disable()
                 break
 
+    def has_line_of_sight(self, x, y):
+        dx = x - self.game.player.x
+        dy = y - self.game.player.y
+
+        steps = max(abs(dx), abs(dy))
+        for i in range(1, steps):
+            x = self.game.player.x + int(i * dx / steps)
+            y = self.game.player.y + int(i * dy / steps)
+
+            if self.game.current_room.tiles[y][x] in [
+                self.game.TILES["wall"],
+                self.game.TILES["obstacle"],
+            ]:
+                return False
+        return True
+
     def draw_target_line(self):
         if not self.game.target_mode:
             return
@@ -56,6 +80,14 @@ class TargetMode:
         for i in range(1, steps):
             x = self.game.player.x + int(i * dx / steps)
             y = self.game.player.y + int(i * dy / steps)
+
+            # respect line of sight - stop drawing if we hit a wall or obstacle
+            if self.game.current_room.tiles[y][x] in [
+                self.game.TILES["wall"],
+                self.game.TILES["obstacle"],
+            ]:
+                break
+
             self.game.stdscr.addch(
                 y + self.game.player.offset_y,
                 x + self.game.player.offset_x,

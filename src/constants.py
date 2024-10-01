@@ -1,8 +1,9 @@
 TILES_EMOJI = {
-    "wall": "🧱",
+    "wall": "#",
     "hallway": "·",
     "floor": "·",
     "rumble": ".",
+    "obstacle": "🪨",
     "door": "╬",
     "door_explored": "┼",
     "door_cleared": "╳",
@@ -14,6 +15,7 @@ TILES_ASCII = {
     "hallway": ".",
     "floor": ".",
     "rumble": ",",
+    "obstacle": "#",
     "door": "X",
     "door_explored": "x",
     "door_cleared": " ",

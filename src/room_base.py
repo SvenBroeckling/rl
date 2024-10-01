@@ -36,6 +36,16 @@ class RoomBase:
     def offset_y(self):
         return (self.game.map_height - self.height) // 2
 
+    def is_walkable(self, x, y):
+        if 0 <= x < self.width and 0 <= y < self.height:
+            return self.tiles[y][x] in (
+                self.game.TILES["rumble"],
+                self.game.TILES["hallway"],
+                self.game.TILES["floor"],
+                self.game.TILES["door"],
+            )
+        return False
+
     def draw(self, stdscr):
         for y, row in enumerate(self.tiles):
             for x, tile in enumerate(row):

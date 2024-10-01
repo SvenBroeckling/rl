@@ -28,14 +28,32 @@ class Room(RoomBase, EnemiesMixin):
         self.hallway_entry = (x, y)
 
     def generate(self):
+        tiles = self.generate_floor()
+        tiles = self.generate_random_rumble(tiles)
+        tiles = self.generate_obstacles(tiles)
+        return tiles
+
+    def generate_floor(self):
         return [
-            [
-                (
-                    self.game.TILES["floor"]
-                    if random.random() > 0.2
-                    else self.game.TILES["rumble"]
-                )
-                for _ in range(self.width)
-            ]
+            [self.game.TILES["floor"] for _ in range(self.width)]
             for _ in range(self.height)
         ]
+
+    def generate_random_rumble(self, tiles):
+        for y in range(self.height):
+            for x in range(self.width):
+                if random.random() > 0.2:
+                    tiles[y][x] = self.game.TILES["rumble"]
+        return tiles
+
+    def generate_obstacles(self, tiles):
+        for _ in range(random.randint(3, 9)):
+            x = random.randint(1, self.width - 5)
+            y = random.randint(1, self.height - 5)
+            width = random.randint(3, 5)
+            height = random.randint(3, 5)
+            for i in range(y, y + height):
+                for j in range(x, x + width):
+                    if random.random() > 0.5:
+                        tiles[i][j] = self.game.TILES["obstacle"]
+        return tiles

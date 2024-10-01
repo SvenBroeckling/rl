@@ -77,8 +77,9 @@ class Enemy:
         )
 
     def move(self, dx, dy):
-        self.x += dx
-        self.y += dy
+        if self.room.is_walkable(self.x + dx, self.y + dy):
+            self.x += dx
+            self.y += dy
 
     def update_movement(self):
         self.current_speed += 1
