@@ -2,6 +2,8 @@
 
 Just a small roguelike
 
-![Challenge Room](contrib/rl1.png)
+![Overworld Hallway](contrib/rl1.png)
 ![Challenge Room](contrib/rl2.png)
-![Overworld Hallway](contrib/rl3.png)
+![Enemy Stats](contrib/rl3.png)
+![Ammo](contrib/rl4.png)
+![Inventory](contrib/rl5.png)
