@@ -1,10 +1,10 @@
 import random
 
-from mixins import EnemiesMixin
+from mixins import RoomWithEnemiesMixin
 from room_base import RoomBase
 
 
-class Room(RoomBase, EnemiesMixin):
+class Room(RoomBase, RoomWithEnemiesMixin):
     def __init__(self, game):
         super().__init__(game)
         self.hallway_entry = (0, 0)
@@ -31,6 +31,7 @@ class Room(RoomBase, EnemiesMixin):
         tiles = self.generate_floor()
         tiles = self.generate_random_rumble(tiles)
         tiles = self.generate_obstacles(tiles)
+        tiles = self.generate_walls(tiles)
         return tiles
 
     def generate_floor(self):
@@ -44,6 +45,19 @@ class Room(RoomBase, EnemiesMixin):
             for x in range(self.width):
                 if random.random() > 0.2:
                     tiles[y][x] = self.game.TILES["rumble"]
+        return tiles
+
+    def generate_walls(self, tiles):
+        for _ in range(random.randint(3, 5)):
+            x = random.randint(1, self.width - 5)
+            y = random.randint(1, self.height - 5)
+            length = random.randint(3, 5)
+            vertical = random.random() > 0.5
+            for i in range(length):
+                if vertical:
+                    tiles[y + i][x] = self.game.TILES["wall"]
+                else:
+                    tiles[y][x + i] = self.game.TILES["wall"]
         return tiles
 
     def generate_obstacles(self, tiles):

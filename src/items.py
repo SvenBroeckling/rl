@@ -12,7 +12,10 @@ class Weapon(Item):
     damage_potential = 0
     range = 1
     piercing = 0
-    capacity = 0
+    magazine = 0
+    magazine_capacity = 0
+    splash_range = 0
+    splash_reduction = 0
 
     def apply(self, player):
         player.equip_weapon(self)
@@ -41,7 +44,18 @@ class Pistol(Weapon):
     description = "A standard 9mm handgun"
     range = 12
     damage_potential = 1
-    capacity = 6
+    magazine = 6
+    magazine_capacity = 6
+
+
+class Shotgun(Weapon):
+    identifier = "weapon_shotgun"
+    name = "Shotgun"
+    description = "A 12-gauge shotgun"
+    range = 5
+    damage_potential = 4
+    magazine = 2
+    magazine_capacity = 2
 
 
 class AssaultRifle(Weapon):
@@ -50,4 +64,5 @@ class AssaultRifle(Weapon):
     description = "A 9mm assault rifle."
     range = 20
     damage_potential = 3
-    capacity = 24
+    magazine = 24
+    magazine_capacity = 24

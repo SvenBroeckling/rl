@@ -15,7 +15,7 @@ TILES_ASCII = {
     "hallway": ".",
     "floor": ".",
     "rumble": ",",
-    "obstacle": "#",
+    "obstacle": "O",
     "door": "X",
     "door_explored": "x",
     "door_cleared": " ",

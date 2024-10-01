@@ -5,21 +5,21 @@ import constants
 from hallway import Hallway
 from inventory import Inventory
 from items import Armor, Item, Weapon
-from mixins import EnemiesMixin
+from mixins import RoomWithEnemiesMixin
 from player import Player
 from rooms import Room
 from status_line import StatusLine
 
 
 class Game:
-    def __init__(self, stdscr, no_emoji=False):
+    def __init__(self, stdscr, emoji=False):
         self.stdscr = stdscr
         curses.curs_set(0)
-        self.side_panel_width = 25
+        self.side_panel_width = 35
         self.screen_height, self.screen_width = stdscr.getmaxyx()
         self.update_game_dimensions()
 
-        self.init_resources(no_emoji)
+        self.init_resources(emoji)
 
         self.status_line = StatusLine(stdscr)
 
@@ -28,9 +28,11 @@ class Game:
         self.available_rooms = []
 
         self.player = Player(
-            self.current_room.width // 2, self.current_room.height // 2, self
+            self, self.current_room.width // 2, self.current_room.height // 2
         )
+        self.player.equip_weapon(random.choice(self.get_available_weapons()))
         self.selected_enemy = None
+
         self.inventory = Inventory(self)
         self.available_items = self.get_available_items()
         self.available_weapons = self.get_available_weapons()
@@ -48,13 +50,13 @@ class Game:
         self.target_y = None
         self.log_messages = []
 
-    def init_resources(self, no_emoji):
-        if no_emoji:
-            self.TILES = constants.TILES_ASCII
-            self.CHARS = constants.CHARS_ASCII
-        else:
+    def init_resources(self, emoji):
+        if emoji:
             self.TILES = constants.TILES_EMOJI
             self.CHARS = constants.CHARS_EMOJI
+        else:
+            self.TILES = constants.TILES_ASCII
+            self.CHARS = constants.CHARS_ASCII
         self.COLORS = constants.COLORS
 
     def init_colors(self):
@@ -96,7 +98,7 @@ class Game:
 
     def draw_entities(self):
         self.player.draw(self.stdscr)
-        if isinstance(self.current_room, EnemiesMixin):
+        if isinstance(self.current_room, RoomWithEnemiesMixin):
             self.current_room.draw_enemies(self.stdscr)
 
     def draw_side_panel(self):
@@ -138,16 +140,13 @@ class Game:
     def handle_input(self, key):
         if key == ord("q"):
             return False
-        elif key == ord("f"):
-            if isinstance(self.current_room, EnemiesMixin):
-                self.player.target(self.current_room.enemies)
         elif key == ord("i"):
             selected_item = self.inventory.open_inventory(self.stdscr)
             if selected_item:
                 selected_item.apply(self.player)
 
-        self.player.handle_input(key, self)
-        if isinstance(self.current_room, EnemiesMixin):
+        self.player.handle_input(key)
+        if isinstance(self.current_room, RoomWithEnemiesMixin):
             self.current_room.move_enemies()
         return True
 

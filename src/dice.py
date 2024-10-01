@@ -2,7 +2,7 @@ import random
 
 
 class DiceRoll:
-    def __init__(self, formula, minimum_roll=5, crit_target=11):
+    def __init__(self, formula, minimum_roll=5, crit_target: int | None = 11):
         self.single_die_rolls = []
 
         try:
@@ -33,12 +33,15 @@ class DiceRoll:
 
     @property
     def successes(self):
-        return len(
-            [roll for roll in self.single_die_rolls if roll >= self.minimum_roll]
-        )
+        result = [roll for roll in self.single_die_rolls if roll >= self.minimum_roll]
+        if self.crit_target:
+            result = [r for r in result if r < self.crit_target]
+        return len(result)
 
     @property
     def critical_hits(self):
+        if not self.crit_target:
+            return 0
         return len([roll for roll in self.single_die_rolls if roll >= self.crit_target])
 
 

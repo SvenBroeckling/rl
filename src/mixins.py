@@ -3,7 +3,7 @@ import random
 from enemies import Enemy
 
 
-class EnemiesMixin:
+class RoomWithEnemiesMixin:
     def __init__(self, game):
         self.game = game
         self.enemies = []
@@ -22,7 +22,11 @@ class EnemiesMixin:
             enemy_y = random.randint(1, self.height - 2)
             speed = random.randint(0, 2)
             health = random.randint(5, 10)
-            new_enemy = Enemy(enemy_x, enemy_y, speed, health, self)
+            shooting_skill = random.randint(1, 3)
+            new_enemy = Enemy(
+                self.game, enemy_x, enemy_y, speed, health, shooting_skill, self
+            )
+            new_enemy.equip_weapon(random.choice(self.game.get_available_weapons()))
             self.enemies.append(new_enemy)
 
     def move_enemies(self):

@@ -65,7 +65,6 @@ class TargetMode:
 
             if self.game.current_room.tiles[y][x] in [
                 self.game.TILES["wall"],
-                self.game.TILES["obstacle"],
             ]:
                 return False
         return True
@@ -84,13 +83,12 @@ class TargetMode:
             # respect line of sight - stop drawing if we hit a wall or obstacle
             if self.game.current_room.tiles[y][x] in [
                 self.game.TILES["wall"],
-                self.game.TILES["obstacle"],
             ]:
                 break
 
             self.game.stdscr.addch(
-                y + self.game.player.offset_y,
-                x + self.game.player.offset_x,
+                y + self.game.current_room.offset_y,
+                x + self.game.current_room.offset_x,
                 self.game.TILES["target_line"],
                 curses.color_pair(self.game.COLORS["player"]),
             )
