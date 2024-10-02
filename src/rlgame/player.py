@@ -1,8 +1,8 @@
 import curses
 
-from entity_base import EntityBase
-from mixins import RoomWithEnemiesMixin
-from target_mode import TargetMode
+from .entity_base import EntityBase
+from .mixins import RoomWithEnemiesMixin
+from .target_mode import TargetMode
 
 
 class Player(EntityBase):
@@ -107,9 +107,13 @@ class Player(EntityBase):
             f"Equipped Armor:",
             curses.color_pair(self.game.COLORS["player"]),
         )
+        armor_str = "None"
+        if self.equipped_armor:
+            armor_str = f"{self.equipped_armor.name} ({self.equipped_armor.protection} protection)"
+
         stdscr.addstr(
             status_y + 10,
             panel_x + 1,
-            f"{self.equipped_armor if self.equipped_armor else 'None'}",
+            armor_str,
             curses.color_pair(self.game.COLORS["player"]),
         )

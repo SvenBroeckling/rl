@@ -26,6 +26,16 @@ class Inventory:
         if key:
             self.items[key] = {"key": key, "item": item, "amount": 1}
 
+    def remove_item(self, item):
+        """Removes an item from the inventory. If it exists, decreases its amount."""
+        for key, item_data in self.items.items():
+            if item_data["item"] == item:
+                item_data["amount"] -= 1
+                if item_data["amount"] == 0:
+                    del self.items[key]
+                    self.selected_identifier = None
+                return
+
     def open_inventory(self, stdscr):
         """Opens the inventory modal and allows the player to select items."""
 
@@ -61,17 +71,17 @@ class Inventory:
 
     def draw_inventory(self, stdscr):
         """Draws the inventory modal."""
-        height, width = stdscr.getmaxyx()
+        _, width = stdscr.getmaxyx()
         title = "Inventory (Press 'q' to exit)"
         stdscr.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
 
-        for i, (identifier, item) in enumerate(self.items.items()):
+        for i, (_, item) in enumerate(self.items.items()):
             x = 2
             y = 3 + i
             amount_str = f"x{item['amount']}"
             item_str = f"{item["key"]} - {item["item"].name} ({amount_str})"
 
-            if item == self.selected_identifier:
+            if item["key"] == self.selected_identifier:
                 stdscr.addstr(y, x, item_str, curses.A_REVERSE)
             else:
                 stdscr.addstr(y, x, item_str)

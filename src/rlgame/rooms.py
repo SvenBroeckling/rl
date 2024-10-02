@@ -1,7 +1,7 @@
 import random
 
-from mixins import RoomWithEnemiesMixin
-from room_base import RoomBase
+from .mixins import RoomWithEnemiesMixin
+from .room_base import RoomBase
 
 
 class Room(RoomBase, RoomWithEnemiesMixin):

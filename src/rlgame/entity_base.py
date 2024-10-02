@@ -1,11 +1,14 @@
+import random
 import curses
 
-from dice import DiceRoll
-from room_base import RoomBase
+from .dice import DiceRoll
+from .inventory import Inventory
+from .room_base import RoomBase
 
 
 class EntityBase:
     def __init__(self, game, x, y, speed=1, health=10, shooting_skill=1, room=None):
+        self.inventory = Inventory(self)
         self.char = game.CHARS["player"]
         self.color = game.COLORS["player"]
         self.x = x
@@ -39,6 +42,14 @@ class EntityBase:
             self.x += dx
             self.y += dy
         self.after_move(self.x, self.y)
+
+    def set_starting_equipment(self):
+        for _ in range(3):
+            item = random.choice(self.game.available_items)
+            self.inventory.add_item(item)
+        self.inventory.add_item(random.choice(self.game.available_weapons))
+        self.equip_weapon(random.choice(self.game.get_available_weapons()))
+        self.equip_armor(random.choice(self.game.get_available_armor()))
 
     def has_cover(self, x, y) -> int | None:
         dx = x - self.x
@@ -98,8 +109,8 @@ class EntityBase:
         roll = DiceRoll(roll_string).roll()
 
         cover_str = "No cover"
-        if self.has_cover(enemy.x, enemy.y):
-            cover_str = f"Cover: {self.has_cover(enemy.x, enemy.y)}+"
+        if enemy.has_cover(enemy.x, enemy.y):
+            cover_str = f"Cover: {enemy.has_cover(enemy.x, enemy.y)}+"
         log_string = (
             f"Attacking with {roll_string}: [{roll.result_string}], {cover_str} ->"
         )
@@ -112,9 +123,12 @@ class EntityBase:
                 log_string += f" {roll.critical_hits} critical hits!"
 
         self.game.add_log_message(log_string)
+
         hits = enemy.roll_cover(roll.successes, self.x, self.y)
+        hits = min(0, hits - enemy.equipped_armor.protection)
         enemy.health -= hits
-        enemy.health -= roll.critical_hits
+        critical_hits = enemy.roll_cover(roll.critical_hits, self.x, self.y)
+        enemy.health -= critical_hits
 
         if enemy.health <= 0:
             self.game.add_log_message("Enemy defeated.")

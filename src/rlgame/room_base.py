@@ -1,5 +1,5 @@
-import curses
 import random
+import curses
 
 
 class RoomBase:
@@ -61,5 +61,8 @@ class RoomBase:
         if self.exit:
             x, y = self.exit
             stdscr.addch(
-                y + self.offset_y, x + self.offset_x, "+", curses.color_pair(3)
+                y + self.offset_y,
+                x + self.offset_x,
+                "+",
+                curses.color_pair(3),
             )

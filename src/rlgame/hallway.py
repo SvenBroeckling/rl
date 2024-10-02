@@ -1,6 +1,6 @@
 import curses
 
-from room_base import RoomBase
+from .room_base import RoomBase
 
 
 class Hallway(RoomBase):
