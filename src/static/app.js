@@ -3,6 +3,7 @@ let terminalDiv = document.getElementById("terminal");
 
 socket.on("connect", function () {
   socket.emit("connected", { data: "I'm connected!" });
+  socket.emit("key_press", { key: " " });
 });
 
 socket.on("disconnect", function () {
