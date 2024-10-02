@@ -79,7 +79,9 @@ class Inventory:
             x = 2
             y = 3 + i
             amount_str = f"x{item['amount']}"
-            item_str = f"{item["key"]} - {item["item"].name} ({amount_str})"
+            item_name = item["item"].name
+            item_key = item["key"]
+            item_str = f"{item_key} - {item_name} ({amount_str})"
 
             if item["key"] == self.selected_identifier:
                 stdscr.addstr(y, x, item_str, curses.A_REVERSE)
