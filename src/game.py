@@ -6,7 +6,7 @@ from rlgame.game import Game
 
 
 def main(stdscr, emoji):
-    game = Game(stdscr, curses, emoji)
+    game = Game(stdscr, emoji)
     game.game_loop()
 
 

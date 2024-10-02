@@ -1,0 +1,4 @@
+Flask==3.0.3
+Flask-SocketIO==5.4.1
+Flask-Session==0.8.0
+Hypercorn==0.17.3

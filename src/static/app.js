@@ -1,10 +1,14 @@
-var socket = io();
+let socket = io();
+let terminalDiv = document.getElementById("terminal");
 
 socket.on("connect", function () {
   socket.emit("connected", { data: "I'm connected!" });
 });
 
-var terminalDiv = document.getElementById("terminal");
+socket.on("disconnect", function () {
+  let terminalDiv = document.getElementById("terminal");
+  terminalDiv.innerHTML = "Disconnected from server";
+});
 
 // Send initial screen size to server
 function sendResizeEvent() {

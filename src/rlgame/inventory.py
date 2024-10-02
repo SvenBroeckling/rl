@@ -2,8 +2,8 @@ import curses
 
 
 class Inventory:
-    def __init__(self, game):
-        self.game = game
+    def __init__(self, entity):
+        self.entity = entity
         self.items = {}  # {identifier: {"key": key, "item": item, "amount":amount}}
         self.selected_identifier = None
 
@@ -85,6 +85,7 @@ class Inventory:
                 stdscr.addstr(y, x, item_str, curses.A_REVERSE)
             else:
                 stdscr.addstr(y, x, item_str)
+        self.entity.game.stdscr.refresh()
 
     def get_item_by_key(self, key):
         """Retrieve an item by its key (used for direct selection)."""

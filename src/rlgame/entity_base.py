@@ -109,8 +109,8 @@ class EntityBase:
         roll = DiceRoll(roll_string).roll()
 
         cover_str = "No cover"
-        if enemy.has_cover(enemy.x, enemy.y):
-            cover_str = f"Cover: {enemy.has_cover(enemy.x, enemy.y)}+"
+        if enemy.has_cover(self.x, self.y):
+            cover_str = f"Cover: {enemy.has_cover(self.x, self.y)}+"
         log_string = (
             f"Attacking with {roll_string}: [{roll.result_string}], {cover_str} ->"
         )
@@ -118,17 +118,16 @@ class EntityBase:
         if roll.successes == 0 and roll.critical_hits == 0:
             log_string += " Miss!"
         else:
-            log_string += f" {roll.successes} hits!"
+            log_string += f" {roll.successes} hits (-{enemy.equipped_armor.protection} protection)"
             if roll.critical_hits:
                 log_string += f" {roll.critical_hits} critical hits!"
 
         self.game.add_log_message(log_string)
 
         hits = enemy.roll_cover(roll.successes, self.x, self.y)
-        hits = min(0, hits - enemy.equipped_armor.protection)
-        enemy.health -= hits
+        enemy.health -= max(0, hits - enemy.equipped_armor.protection)
         critical_hits = enemy.roll_cover(roll.critical_hits, self.x, self.y)
-        enemy.health -= critical_hits
+        enemy.health -= max(0, critical_hits)
 
         if enemy.health <= 0:
             self.game.add_log_message("Enemy defeated.")

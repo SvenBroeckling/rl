@@ -1,0 +1,78 @@
+body,
+html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+    color: green;
+    font-family: monospace;
+}
+
+#terminal {
+    white-space: pre-wrap;
+    font-size: 20px;
+}
+
+span {
+    font-family: "JetBrains Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
+.color-red {
+    color: red;
+}
+
+.color-green {
+    color: green;
+}
+
+.color-blue {
+    color: blue;
+}
+
+.color-yellow {
+    color: yellow;
+}
+
+.color-white {
+    color: white;
+}
+
+.color-cyan {
+    color: cyan;
+}
+
+.color-magenta {
+    color: magenta;
+}
+
+.background-red {
+    background-color: red;
+}
+
+.background-green {
+    background-color: green;
+}
+
+.background-blue {
+    background-color: blue;
+}
+
+.background-yellow {
+    background-color: yellow;
+}
+
+.background-white {
+    background-color: white;
+}
+
+.background-cyan {
+    background-color: cyan;
+}
+
+.background-magenta {
+    background-color: magenta;
+}

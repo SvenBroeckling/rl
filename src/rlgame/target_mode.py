@@ -6,7 +6,7 @@ class TargetMode:
         self.enemies = enemies
         self.game = game
         self.game.status_line.set_status(
-            "Target mode - Tab: switch target | f: attack | ESC: exit"
+            "Target mode - n: switch target | f: attack | ESC: exit"
         )
         self.target_index = self.target_index_for_enemy(self.find_closest_enemy())
         self.select_target(self.enemies[self.target_index])
@@ -57,11 +57,12 @@ class TargetMode:
         while True:
             self.game.render()
             self.draw_target_line()
+            self.game.stdscr.refresh()
             key = self.game.stdscr.getch()
             if key in [ord("q"), 27]:
                 self.disable()
                 break
-            if key == ord("\t"):
+            if key == ord("n"):
                 self.next_target()
             elif key == ord("f"):
                 self.attack_target()

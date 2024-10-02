@@ -1,102 +1,11 @@
-import sys
-import queue
-import threading
+from .constants import HTML_COLOR_CLASSES
 
 
-def wrap_curses_app(
-    curses_app_class_name: str,
-    lines: int,
-    columns: int,
-    screen_update_callback=None,
-    **app_kwargs,
-):
-    """
-    Wrap a curses app in a Flask server.
-
-    :param curses_app_class_name: The class of the curses app to run in dot notation.
-    :param lines: The number of lines in the terminal.
-    :param columns: The number of columns in the terminal.
-    :param screen_update_callback: A callback function to call when the screen is updated.
-    :param app_kwargs: Additional keyword arguments to pass to the curses app.
-    """
-
-    key_event = threading.Event()
-    resize_event = threading.Event()
-    key_queue = queue.Queue()
-    thread = CursesThread(
-        curses_app_class_name,
-        key_event,
-        resize_event,
-        key_queue,
-        lines,
-        columns,
-        screen_update_callback=screen_update_callback,
-        **app_kwargs,
-    )
-    wrapper = CursesThreadWrapper(thread, key_event, resize_event, key_queue)
-    threading.Thread(target=thread.run).start()
-    return wrapper
+class Window:
+    pass
 
 
-class CursesThreadWrapper:
-    def __init__(
-        self,
-        thread,
-        key_event,
-        resize_event,
-        key_queue,
-    ):
-        self.thread = thread
-        self.key_event = key_event
-        self.resize_event = resize_event
-        self.key_queue = key_queue
-
-    def handle_key_press(self, key):
-        self.thread.key_queue.put(key)
-        self.thread.key_event.set()
-
-    def handle_resize(self, width, height):
-        self.thread.web_curses.resize(width, height)
-        self.thread.resize_event.set()
-
-
-class CursesThread(threading.Thread):
-    def __init__(
-        self,
-        curses_app_class_name,
-        key_event,
-        resize_event,
-        key_queue,
-        lines,
-        columns,
-        screen_update_callback=None,
-        **kwargs,
-    ):
-        super().__init__()
-        self.curses_app_class_name = curses_app_class_name
-        self.web_curses = WebCurses(
-            self, lines, columns, screen_update_callback=screen_update_callback
-        )
-        self.install_web_curses()
-
-        self.resize_event = resize_event
-        self.key_queue = key_queue
-        self.curses_app = self.get_app_class()(self.web_curses.stdscr, **kwargs)
-        self.key_event = key_event
-
-    def install_web_curses(self):
-        sys.modules["curses"] = self.web_curses
-
-    def get_app_class(self):
-        # import the curses_app_class_name by dot notation name
-        module_name, class_name = self.curses_app_class_name.rsplit(".", 1)
-        return __import__(module_name, fromlist=[class_name]).__dict__[class_name]
-
-    def run(self):
-        self.curses_app.game_loop()
-
-
-class StdScr:
+class Screen:
     def __init__(self, thread, web_curses):
         self.thread = thread
         self.web_curses = web_curses
@@ -128,6 +37,8 @@ class StdScr:
 
     def addch(self, y, x, ch, color=None):
         """Add a single character to the screen at a given position."""
+        if color is None:
+            color = self.web_curses.current_color_pair
         if 0 <= x < self.width and 0 <= y < self.height:
             if color is None:
                 color = self.web_curses.current_color_pair
@@ -171,7 +82,7 @@ class WebCurses:
         self.colors_initialized = False
         self.current_color_pair = 0  # Default color pair
         self.init_screen()
-        self.stdscr = StdScr(thread, self)
+        self.stdscr = Screen(thread, self)
 
     @property
     def COLS(self):
@@ -219,8 +130,10 @@ class WebCurses:
         for row in self.screen:
             line = []
             for char, color_pair in row:
-                fg, bg = self.color_pairs.get(color_pair, ("white", "black"))
-                span = f'<span style="color:{fg}; background-color:{bg};">{char}</span>'
+                fg, bg = self.color_pairs.get(color_pair, (7, 0))
+                fg_class = f"color-{HTML_COLOR_CLASSES[fg]}"
+                bg_class = f"background-{HTML_COLOR_CLASSES[bg]}"
+                span = f'<span class="{fg_class} {bg_class}">{char}</span>'
                 line.append(span)
             result.append("".join(line))
         result = "<br>".join(result)
