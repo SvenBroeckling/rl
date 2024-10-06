@@ -1,5 +1,6 @@
 import curses
 
+from .colors import PlayerColor
 from .entity_base import EntityBase
 from .mixins import RoomWithEnemiesMixin
 from .target_mode import TargetMode
@@ -55,37 +56,37 @@ class Player(EntityBase):
             status_y,
             panel_x + 1,
             "Status",
-            curses.color_pair(self.game.COLORS["player"]) | curses.A_BOLD,
+            curses.color_pair(PlayerColor.pair_number) | curses.A_BOLD,
         )
         stdscr.addstr(
             status_y + 1,
             panel_x + 1,
             f"Reputation: {self.reputation}",
-            curses.color_pair(self.game.COLORS["player"]),
+            curses.color_pair(PlayerColor.pair_number),
         )
         stdscr.addstr(
             status_y + 2,
             panel_x + 1,
             f"Health: {self.health}",
-            curses.color_pair(self.game.COLORS["player"]),
+            curses.color_pair(PlayerColor.pair_number),
         )
         stdscr.addstr(
             status_y + 3,
             panel_x + 1,
             f"Shooting Skill: {self.shooting_skill}",
-            curses.color_pair(self.game.COLORS["player"]),
+            curses.color_pair(PlayerColor.pair_number),
         )
         stdscr.addstr(
             status_y + 4,
             panel_x + 1,
             f"Speed: {self.speed}",
-            curses.color_pair(self.game.COLORS["player"]),
+            curses.color_pair(PlayerColor.pair_number),
         )
         stdscr.addstr(
             status_y + 6,
             panel_x + 1,
             f"Equipped Weapon:",
-            curses.color_pair(self.game.COLORS["player"]),
+            curses.color_pair(PlayerColor.pair_number),
         )
 
         weapon_str = "None"
@@ -98,14 +99,14 @@ class Player(EntityBase):
             status_y + 7,
             panel_x + 1,
             weapon_str,
-            curses.color_pair(self.game.COLORS["player"]),
+            curses.color_pair(PlayerColor.pair_number),
         )
 
         stdscr.addstr(
             status_y + 9,
             panel_x + 1,
             f"Equipped Armor:",
-            curses.color_pair(self.game.COLORS["player"]),
+            curses.color_pair(PlayerColor.pair_number),
         )
         armor_str = "None"
         if self.equipped_armor:
@@ -115,5 +116,5 @@ class Player(EntityBase):
             status_y + 10,
             panel_x + 1,
             armor_str,
-            curses.color_pair(self.game.COLORS["player"]),
+            curses.color_pair(PlayerColor.pair_number),
         )

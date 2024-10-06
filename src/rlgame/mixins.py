@@ -16,8 +16,8 @@ class RoomWithEnemiesMixin:
     def create_enemies(self):
         self.enemies = []
 
-        num_enemies = random.randint(2, 4)
-        for _ in range(num_enemies):
+        amount = self.width * self.height // 200
+        for _ in range(amount):
             new_enemy = Enemy(
                 game=self.game,
                 x=random.randint(1, self.width - 2),

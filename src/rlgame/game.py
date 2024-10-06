@@ -1,6 +1,8 @@
 import curses
 
 from . import constants
+from .colors import ColorBase, PlayerColor
+
 from .hallway import Hallway
 from .items import Armor, Item, Weapon
 from .mixins import RoomWithEnemiesMixin
@@ -16,7 +18,9 @@ class Game:
 
         self.status_line = StatusLine(self)
 
-        self.hallway = Hallway(self)
+        self.hallway = Hallway(
+            self, min_width=10, min_height=10, max_width=20, max_height=20
+        )
         self.current_room = self.hallway
         self.available_rooms = []
 
@@ -34,33 +38,24 @@ class Game:
         curses.curs_set(0)
         self.side_panel_width = 35
         self.screen_height, self.screen_width = stdscr.getmaxyx()
-        self.map_width = self.screen_width - self.side_panel_width
-        self.map_height = self.screen_height - 8  # 1 for status line, 4 for log
+        self.viewport_width = self.screen_width - self.side_panel_width
+        self.viewport_height = self.screen_height - 8  # 1 for status line, 4 for log
 
     def init_resources(self, emoji):
+        self.init_colors()
         self.available_items = self.get_available_items()
         self.available_weapons = self.get_available_weapons()
         self.available_armor = self.get_available_armor()
 
         if emoji:
-            self.TILES = constants.TILES_EMOJI
             self.CHARS = constants.CHARS_EMOJI
         else:
-            self.TILES = constants.TILES_ASCII
             self.CHARS = constants.CHARS_ASCII
-        self.COLORS = constants.COLORS
 
     def init_colors(self):
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)  # Player
-        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)  # Enemy
-        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Pickups, etc.
-        curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(5, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-        curses.init_pair(6, curses.COLOR_GREEN, curses.COLOR_BLACK)
-        curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(8, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        curses.init_pair(9, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        for color in ColorBase.__subclasses__():
+            color().curses_init_pair()
 
     def get_available_weapons(self):
         return [cls() for cls in Weapon.__subclasses__()]
@@ -88,7 +83,7 @@ class Game:
             self.current_room.draw_enemies(self.stdscr)
 
     def draw_side_panel(self):
-        panel_x = self.map_width
+        panel_x = self.viewport_width
         self.player.draw_status(self.stdscr, panel_x)
         if self.selected_enemy:
             self.selected_enemy.draw_status(self.stdscr, panel_x)
@@ -111,7 +106,7 @@ class Game:
             ]
 
         for i, message in enumerate(shown_messages_with_offset, 1):
-            self.stdscr.addstr(log_start_y + i, 0, message, curses.color_pair(7))
+            self.stdscr.addstr(log_start_y + i, 0, message, PlayerColor.pair_number)
 
     def add_log_message(self, message):
         self.log_messages.append(message)
@@ -174,7 +169,6 @@ class Game:
         self.stdscr.refresh()
 
     def game_loop(self):
-        self.init_colors()
         self.create_available_rooms()
         self.add_log_message("Welcome to the dungeon!")
 

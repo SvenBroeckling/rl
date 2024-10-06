@@ -1,5 +1,7 @@
 import curses
 
+from rlgame.colors import PlayerColor
+
 
 class TargetMode:
     def __init__(self, enemies, game):
@@ -29,7 +31,7 @@ class TargetMode:
     def select_target(self, enemy):
         self.target_x = enemy.x
         self.target_y = enemy.y
-        if self.has_line_of_sight(self.target_x, self.target_y):
+        if self.game.player.has_line_of_sight(enemy):
             self.game.selected_enemy = enemy
         else:
             self.game.selected_enemy = None
@@ -69,21 +71,6 @@ class TargetMode:
                 self.disable()
                 break
 
-    def has_line_of_sight(self, x, y):
-        dx = x - self.game.player.x
-        dy = y - self.game.player.y
-
-        steps = max(abs(dx), abs(dy))
-        for i in range(1, steps):
-            x = self.game.player.x + int(i * dx / steps)
-            y = self.game.player.y + int(i * dy / steps)
-
-            if self.game.current_room.tiles[y][x] in [
-                self.game.TILES["wall"],
-            ]:
-                return False
-        return True
-
     def draw_target_line(self):
         if not self.game.target_mode:
             return
@@ -96,14 +83,14 @@ class TargetMode:
             y = self.game.player.y + int(i * dy / steps)
 
             # respect line of sight - stop drawing if we hit a wall or obstacle
-            if self.game.current_room.tiles[y][x] in [
-                self.game.TILES["wall"],
-            ]:
+            if self.game.current_room.tiles[y][x].breaks_line_of_sight:
                 break
 
-            self.game.stdscr.addch(
-                y + self.game.current_room.offset_y,
-                x + self.game.current_room.offset_x,
-                self.game.TILES["target_line"],
-                curses.color_pair(self.game.COLORS["player"]),
-            )
+            if pos := self.game.current_room.get_map_position_in_viewport(x, y):
+                x, y = pos
+                self.game.stdscr.addch(
+                    y,
+                    x,
+                    "*",
+                    curses.color_pair(PlayerColor.pair_number) | curses.A_BOLD,
+                )

@@ -1,6 +1,7 @@
 import random
 import curses
 
+from .colors import PlayerColor
 from .dice import DiceRoll
 from .inventory import Inventory
 from .room_base import RoomBase
@@ -10,7 +11,7 @@ class EntityBase:
     def __init__(self, game, x, y, speed=1, health=10, shooting_skill=1, room=None):
         self.inventory = Inventory(self)
         self.char = game.CHARS["player"]
-        self.color = game.COLORS["player"]
+        self.color = PlayerColor.pair_number
         self.x = x
         self.y = y
         self.game = game
@@ -18,6 +19,7 @@ class EntityBase:
         self.speed = speed
         self.health = health
         self.shooting_skill = shooting_skill
+        self.view_distance = 10
         self.equipped_weapon = None
         self.equipped_armor = None
         self.reputation = 0
@@ -33,6 +35,22 @@ class EntityBase:
         if self.equipped_weapon:
             return self.shooting_skill + self.equipped_weapon.damage_potential
         return self.shooting_skill
+
+    def is_in_view_distance(self, x, y) -> bool:
+        return (x - self.x) ** 2 + (y - self.y) ** 2 <= self.view_distance**2
+
+    def has_line_of_sight(self, entity: "EntityBase"):
+        dx = entity.x - self.x
+        dy = entity.y - self.y
+
+        steps = max(abs(dx), abs(dy))
+        for i in range(1, steps):
+            x = self.x + int(i * dx / steps)
+            y = self.y + int(i * dy / steps)
+
+            if self.room.tiles[y][x].breaks_line_of_sight:
+                return False
+        return True
 
     def after_move(self, new_x, new_y):
         pass
@@ -58,7 +76,7 @@ class EntityBase:
         for i in range(1, steps):
             x = self.x + int(i * dx / steps)
             y = self.y + int(i * dy / steps)
-            if self.room.tiles[y][x] == self.room.game.TILES["obstacle"]:
+            if self.room.tiles[y][x].provides_cover:
                 return 3 + min(2, i)
 
     def equip_weapon(self, weapon):
@@ -138,9 +156,7 @@ class EntityBase:
         pass
 
     def draw(self, stdscr):
-        stdscr.addch(
-            self.y + self.room.offset_y,
-            self.x + self.room.offset_x,
-            self.char,
-            curses.color_pair(self.color),
-        )
+        if pos := self.room.get_map_position_in_viewport(self.x, self.y):
+            x, y = pos
+            if self.is_in_view_distance(self.game.player.x, self.game.player.y):
+                stdscr.addch(y, x, self.char, curses.color_pair(self.color))

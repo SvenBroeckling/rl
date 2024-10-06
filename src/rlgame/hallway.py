@@ -1,14 +1,15 @@
 import curses
 
 from .room_base import RoomBase
+from .room_generators import HallwayGenerator
+from .tiles import DoorTile
 
 
 class Hallway(RoomBase):
-    def generate(self):
-        return [
-            [self.game.TILES["hallway"] for _ in range(self.width)]
-            for _ in range(self.height)
-        ]
+
+    @property
+    def generator(self):
+        return HallwayGenerator(game=self.game, width=self.width, height=self.height)
 
     @property
     def name(self):
@@ -20,16 +21,17 @@ class Hallway(RoomBase):
 
     def draw_room_entries(self):
         for room in self.game.available_rooms:
-            tile = self.game.TILES["door"]
+            tile = DoorTile(self.game)
             if room.was_entered:
-                tile = self.game.TILES["door_explored"]
+                tile = DoorTile(self.game, cleared=True)
             if room.is_cleared:
-                tile = self.game.TILES["door_cleared"]
+                tile = DoorTile(self.game, visited=True)
 
-            x, y = room.hallway_entry
-            self.game.stdscr.addch(
-                y + self.offset_y,
-                x + self.offset_x,
-                tile,
-                curses.color_pair(3),
-            )
+            if pos := self.get_map_position_in_viewport(*room.hallway_entry):
+                x, y = pos
+                self.game.stdscr.addch(
+                    y,
+                    x,
+                    tile.char,
+                    tile.color,
+                )

@@ -1,19 +1,29 @@
-import random
 import curses
+import random
+
+from rlgame import curses_colors
+from rlgame.tiles import WallTile, DoorTile
 
 
 class RoomBase:
-    def __init__(self, game):
-        self.height = random.randint(10, game.map_height)
-        self.width = random.randint(10, game.map_width)
+    def __init__(
+        self, game, min_width=20, max_width=100, min_height=20, max_height=100
+    ):
+        self.height = random.randint(min_height, max_height)
+        self.width = random.randint(min_width, max_width)
         self.was_entered = False
         self.exit = None
         self.game = game
-        self.tiles = self.generate()
+        self.tiles = self.generator.generate_room()
         self.create_exit()
 
-    def generate(self):
-        raise NotImplementedError("generate method must be implemented in subclass")
+    @property
+    def name(self):
+        raise NotImplementedError("name method must be implemented in subclass")
+
+    @property
+    def generator(self):
+        raise NotImplementedError("generator method must be implemented in subclass")
 
     def create_exit(self):
         return None
@@ -24,45 +34,59 @@ class RoomBase:
         else:
             player.x, player.y = self.width // 2, self.height // 2
 
-    @property
-    def name(self):
-        raise NotImplementedError("generate method must be implemented in subclass")
-
-    @property
-    def offset_x(self):
-        return (self.game.map_width - self.width) // 2
-
-    @property
-    def offset_y(self):
-        return (self.game.map_height - self.height) // 2
-
     def is_walkable(self, x, y):
         if 0 <= x < self.width and 0 <= y < self.height:
-            return self.tiles[y][x] in (
-                self.game.TILES["rumble"],
-                self.game.TILES["hallway"],
-                self.game.TILES["floor"],
-                self.game.TILES["door"],
-            )
+            return self.tiles[y][x].is_walkable
         return False
 
-    def draw(self, stdscr):
-        for y, row in enumerate(self.tiles):
-            for x, tile in enumerate(row):
-                stdscr.addch(y + self.offset_y, x + self.offset_x, tile)
+    def get_map_position_in_viewport(self, map_x, map_y) -> tuple | None:
+        """Convert map coordinates to viewport coordinates. Return None if the map position is not in the viewport."""
+        player = self.game.player
+        viewport_width = self.game.viewport_width
+        viewport_height = self.game.viewport_height
+        offset_x = player.x - viewport_width // 2
+        offset_y = player.y - viewport_height // 2
 
-        for y in range(self.height):
-            stdscr.addch(y + self.offset_y, self.offset_x, "|")
-            stdscr.addch(y + self.offset_y, self.width - 1 + self.offset_x, "|")
-        for x in range(self.width):
-            stdscr.addch(self.offset_y, x + self.offset_x, "-")
-            stdscr.addch(self.height - 1 + self.offset_y, x + self.offset_x, "-")
+        x = map_x - offset_x
+        y = map_y - offset_y
+
+        if 0 <= y < viewport_height and 0 <= x < viewport_width:
+            return x, y
+        return None
+
+    def draw_map(self, player):
+        """Draw the map around the player in the viewport."""
+        viewport_width = self.game.viewport_width
+        viewport_height = self.game.viewport_height
+        offset_x = player.x - viewport_width // 2
+        offset_y = player.y - viewport_height // 2
+
+        for y in range(viewport_height):
+            for x in range(viewport_width):
+                if 0 <= y + offset_y < self.height and 0 <= x + offset_x < self.width:
+                    tile = self.tiles[y + offset_y][x + offset_x]
+                else:
+                    tile = WallTile(self.game)
+
+                if self.game.player.is_in_view_distance(x + offset_x, y + offset_y):
+                    tile.is_discovered = True
+                    self.game.stdscr.addch(y, x, tile.char, tile.color | curses.A_BOLD)
+                else:
+                    if tile.is_discovered:
+                        self.game.stdscr.addch(y, x, tile.char, tile.color)
+                    else:
+                        self.game.stdscr.addch(y, x, " ", curses_colors.COLOR_GRAY_118)
+
+    def draw(self, stdscr):
+        self.draw_map(self.game.player)
 
         if self.exit:
-            x, y = self.exit
-            stdscr.addch(
-                y + self.offset_y,
-                x + self.offset_x,
-                "+",
-                curses.color_pair(3),
-            )
+            if pos := self.get_map_position_in_viewport(*self.exit):
+                x, y = pos
+                door_tile = DoorTile(self.game)
+                stdscr.addch(
+                    y,
+                    x,
+                    door_tile.char,
+                    door_tile.color,
+                )
