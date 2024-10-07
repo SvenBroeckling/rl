@@ -49,14 +49,14 @@ class KevlarVest(Armor):
     identifier = "armor_kevlar"
     name = "Kevlar Vest"
     description = "A bulletproof vest. Reduces hits by 2."
-    protection = 2
+    protection = 1
 
 
 class PlateCarrier(Armor):
     identifier = "armor_plate_carrier"
     name = "Plate Carrier"
     description = "A heavy plate carrier. Reduces hits by 3."
-    protection = 3
+    protection = 2
 
 
 class SoftBodyArmor(Armor):

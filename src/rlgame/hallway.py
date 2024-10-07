@@ -33,5 +33,5 @@ class Hallway(RoomBase):
                     y,
                     x,
                     tile.char,
-                    tile.color,
+                    curses.color_pair(tile.color),
                 )

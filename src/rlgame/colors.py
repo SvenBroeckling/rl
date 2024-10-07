@@ -43,5 +43,11 @@ class DoorColor(ColorBase):
 
 class FloorColor(ColorBase):
     pair_number = 6
-    foreground = curses_colors.COLOR_GRAY_8
+    foreground = curses_colors.COLOR_GRAY_88
+    background = curses_colors.COLOR_BLACK
+
+
+class OutsideSightColor(ColorBase):
+    pair_number = 7
+    foreground = curses_colors.COLOR_GRAY_68
     background = curses_colors.COLOR_BLACK

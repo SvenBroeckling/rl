@@ -1,8 +1,8 @@
 import curses
 import random
 
-from rlgame import curses_colors
 from rlgame.tiles import WallTile, DoorTile
+from rlgame.colors import OutsideSightColor
 
 
 class RoomBase:
@@ -70,12 +70,19 @@ class RoomBase:
 
                 if self.game.player.is_in_view_distance(x + offset_x, y + offset_y):
                     tile.is_discovered = True
-                    self.game.stdscr.addch(y, x, tile.char, tile.color | curses.A_BOLD)
+                    self.game.stdscr.addch(
+                        y, x, tile.char, curses.color_pair(tile.color) | curses.A_BOLD
+                    )
                 else:
                     if tile.is_discovered:
-                        self.game.stdscr.addch(y, x, tile.char, tile.color)
+                        self.game.stdscr.addch(
+                            y,
+                            x,
+                            tile.char,
+                            curses.color_pair(OutsideSightColor.pair_number),
+                        )
                     else:
-                        self.game.stdscr.addch(y, x, " ", curses_colors.COLOR_GRAY_118)
+                        self.game.stdscr.addch(y, x, " ", curses.color_pair(0))
 
     def draw(self, stdscr):
         self.draw_map(self.game.player)
@@ -88,5 +95,5 @@ class RoomBase:
                     y,
                     x,
                     door_tile.char,
-                    door_tile.color,
+                    curses.color_pair(door_tile.color),
                 )
