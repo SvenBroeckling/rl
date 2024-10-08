@@ -60,6 +60,8 @@ class Player(EntityBase):
                 self.switch_armor_from_floor(item_stack.item)
             else:
                 self.inventory.add_item_stack(item_stack)
+                self.room.floor_item_stacks.remove_item_stack(self.x, self.y)
+                self.game.add_log_message(f"Picked up {item_stack.item.name}")
         else:
             self.game.add_log_message("There is nothing to pick up")
 

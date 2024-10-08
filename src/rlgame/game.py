@@ -17,6 +17,7 @@ class Game:
         self.init_colors()
 
         self.emoji = emoji
+        self.challenge_rating = 1
 
         self.status_line = StatusLine(self)
         self.info_line = InfoLine(self)
@@ -89,7 +90,8 @@ class Game:
         self.draw_log()
 
     def draw_room_name(self):
-        self.stdscr.addstr(0, 0, self.current_room.name, curses.color_pair(7))
+        s = f"{self.current_room.name} - Challenge Rating {self.current_room.challenge_rating}"
+        self.stdscr.addstr(0, 0, s, PlayerColor.pair_number | curses.A_BOLD)
 
     def draw_log(self):
         offset_y = 0

@@ -18,6 +18,8 @@ class RoomBase:
         self.tiles = self.generator.generate_room()
         self.enemies = []
         self.floor_item_stacks = FloorItemStacks(self)
+        self.challenge_rating = 1
+        self.set_challenge_rating()
         self.create_enemies()
         self.create_exit()
 
@@ -28,6 +30,10 @@ class RoomBase:
     @property
     def generator(self):
         raise NotImplementedError("generator method must be implemented in subclass")
+
+    def set_challenge_rating(self):
+        challenge_rating = self.game.challenge_rating + random.randint(-1, 2)
+        self.challenge_rating = max(1, challenge_rating)
 
     def create_enemies(self):
         self.enemies = []

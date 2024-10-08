@@ -7,6 +7,8 @@ from .tiles import DoorTile
 
 
 class Hallway(RoomBase):
+    def __init__(self, game, **kwargs):
+        super().__init__(game, **kwargs)
 
     @property
     def generator(self):
@@ -15,6 +17,9 @@ class Hallway(RoomBase):
     @property
     def name(self):
         return "Hallway"
+
+    def set_challenge_rating(self):
+        self.challenge_rating = 1
 
     def create_enemies(self):
         new_enemy = TutorialEnemy(

@@ -9,7 +9,6 @@ class Room(RoomBase):
     def __init__(self, game):
         super().__init__(game)
         self.hallway_entry = (0, 0)
-        self.create_enemies()
         self.set_random_hallway_entry()
 
     @property
@@ -34,12 +33,14 @@ class Room(RoomBase):
                 x=random.randint(1, self.width - 2),
                 y=random.randint(1, self.height - 2),
                 speed=random.randint(0, 2),
-                health=random.randint(5, 10),
-                shooting_skill=random.randint(1, 3),
+                health=self.challenge_rating * random.randint(1, 3),
+                shooting_skill=self.challenge_rating * random.randint(1, 2),
                 room=self,
             )
-            new_enemy.reputation = random.randint(1, 3)
-            new_enemy.set_starting_equipment()
+            new_enemy.reputation = self.challenge_rating
+            new_enemy.set_starting_equipment(
+                min_tier=self.challenge_rating - 1, max_tier=self.challenge_rating
+            )
             self.enemies.append(new_enemy)
 
     def create_exit(self):

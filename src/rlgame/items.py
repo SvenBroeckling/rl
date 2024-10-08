@@ -135,6 +135,7 @@ class Revolver(Weapon):
     name = "Revolver"
     description = "A .357 revolver"
     range = 10
+    piercing = 1
     damage_potential = 2
     magazine = 6
     magazine_capacity = 6
@@ -158,6 +159,19 @@ class AssaultRifle(Weapon):
     description = "A 9mm assault rifle."
     range = 20
     damage_potential = 3
+    piercing = 2
     magazine = 24
     magazine_capacity = 24
     tier = 3
+
+
+class MachineGun(Weapon):
+    identifier = "weapon_machine_gun"
+    name = "Machine Gun"
+    description = "A 7.62mm machine gun."
+    range = 15
+    damage_potential = 4
+    piercing = 3
+    magazine = 50
+    magazine_capacity = 50
+    tier = 4
