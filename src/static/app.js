@@ -21,7 +21,9 @@ function sendResizeEvent() {
 
 // Update terminal display
 socket.on("screen_update", function (data) {
-  terminalDiv.innerHTML = data.screen;
+  let compressedData = Uint8Array.from(atob(data.screen), c => c.charCodeAt(0));
+  let screenData = pako.inflate(compressedData, { to: "string" });
+  terminalDiv.innerHTML = screenData;
 });
 
 // Capture key presses and send to server

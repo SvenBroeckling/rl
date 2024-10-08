@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-
+import base64
+import gzip
 import os
 import uuid
 import atexit
+from io import BytesIO
 
 from flask import Flask, render_template, session
 from flask_socketio import SocketIO
@@ -24,9 +26,21 @@ socketio = SocketIO(app, manage_session=False)
 SESSION_APPS = {}
 
 
+def compress_screen(screen):
+    """
+    Compresses the screen using gzip and returns the compressed screen
+    as a base64 encoded string.
+    """
+    compressed_data = BytesIO()
+    with gzip.GzipFile(fileobj=compressed_data, mode="wb") as f:
+        f.write(screen.encode("utf-8"))  # Write the screen data as bytes
+
+    return base64.b64encode(compressed_data.getvalue()).decode()
+
+
 def screen_update_callback(screen):
     with app.app_context():
-        socketio.emit("screen_update", {"screen": screen})
+        socketio.emit("screen_update", {"screen": compress_screen(screen)})
 
 
 def on_shutdown():
