@@ -6,6 +6,7 @@ from rlgame.colors import WallColor, DoorColor, FloorColor
 class TileBase:
     def __init__(self, game):
         self.game = game
+        self.name = "Tile"
         self.chars = [" "]
         self.chars_emoji = [" "]
         self.provides_cover = False
@@ -22,6 +23,7 @@ class TileBase:
 class EmptyTile(TileBase):
     def __init__(self, game):
         super().__init__(game)
+        self.name = "Empty"
         self.is_walkable = True
         self.breaks_line_of_sight = False
         self.chars = [" "]
@@ -32,6 +34,7 @@ class EmptyTile(TileBase):
 class WallTile(TileBase):
     def __init__(self, game):
         super().__init__(game)
+        self.name = "Wall"
         self.is_walkable = False
         self.breaks_line_of_sight = True
         self.chars = ["#"]
@@ -42,6 +45,7 @@ class WallTile(TileBase):
 class FloorTile(TileBase):
     def __init__(self, game):
         super().__init__(game)
+        self.name = "Floor"
         self.is_walkable = True
         self.breaks_line_of_sight = False
         self.is_rumble = random.choice([True, False, False, False, False])
@@ -59,6 +63,7 @@ class FloorTile(TileBase):
 class DoorTile(TileBase):
     def __init__(self, game, cleared=False, locked=False, visited=False):
         super().__init__(game)
+        self.name = "Door"
         self.is_walkable = True
         self.breaks_line_of_sight = False
         self.chars = ["X", "x", " "]
@@ -80,6 +85,7 @@ class DoorTile(TileBase):
 class ObstacleTile(TileBase):
     def __init__(self, game):
         super().__init__(game)
+        self.name = "Obstacle"
         self.is_walkable = False
         self.breaks_line_of_sight = False
         self.chars = ["O"]

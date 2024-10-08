@@ -1,5 +1,6 @@
 import curses
 
+from .enemies import TutorialEnemy
 from .room_base import RoomBase
 from .room_generators import HallwayGenerator
 from .tiles import DoorTile
@@ -15,9 +16,24 @@ class Hallway(RoomBase):
     def name(self):
         return "Hallway"
 
+    def create_enemies(self):
+        new_enemy = TutorialEnemy(
+            game=self.game,
+            x=self.width // 2,
+            y=1,
+            speed=1,
+            health=3,
+            shooting_skill=1,
+            room=self,
+        )
+        new_enemy.reputation = 1
+        new_enemy.set_starting_equipment(min_tier=1, max_tier=1)
+        self.enemies = [new_enemy]
+
     def draw(self, stdscr):
         super().draw(stdscr)
         self.draw_room_entries()
+        self.draw_enemies(stdscr)
 
     def draw_room_entries(self):
         for room in self.game.available_rooms:

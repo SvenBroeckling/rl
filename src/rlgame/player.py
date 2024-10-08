@@ -2,7 +2,8 @@ import curses
 
 from .colors import PlayerColor
 from .entity_base import EntityBase
-from .mixins import RoomWithEnemiesMixin
+from .item_stack import ItemStack
+from .items import Weapon, Armor
 from .target_mode import TargetMode
 
 
@@ -25,6 +26,42 @@ class Player(EntityBase):
                 if (new_x, new_y) == self.game.current_room.exit:
                     self.game.exit_room(self.game.current_room)
                     return
+        self.set_floor_info()
+
+    def set_floor_info(self):
+        item_stack = self.room.floor_item_stacks.get_item_stack(self.x, self.y)
+        if item_stack is not None:
+            self.game.info_line.set_info(f"On floor: {item_stack.item.name}")
+            return
+        self.game.info_line.set_info(self.room.tiles[self.y][self.x].name)
+
+    def switch_weapon_from_floor(self, weapon):
+        if self.equipped_weapon:
+            self.room.floor_item_stacks.add_item_stack(
+                self.x, self.y, ItemStack(self.game, self.equipped_weapon, 1)
+            )
+        self.equipped_weapon = weapon
+        self.game.add_log_message(f"Equipped {weapon.name}")
+
+    def switch_armor_from_floor(self, armor):
+        if self.equipped_armor:
+            self.room.floor_item_stacks.add_item_stack(
+                self.x, self.y, ItemStack(self.game, self.equipped_armor, 1)
+            )
+        self.equipped_armor = armor
+        self.game.add_log_message(f"Equipped {armor.name}")
+
+    def pick_up_item(self):
+        item_stack = self.room.floor_item_stacks.get_item_stack(self.x, self.y)
+        if item_stack is not None:
+            if isinstance(item_stack.item, Weapon):
+                self.switch_weapon_from_floor(item_stack.item)
+            elif isinstance(item_stack.item, Armor):
+                self.switch_armor_from_floor(item_stack.item)
+            else:
+                self.inventory.add_item_stack(item_stack)
+        else:
+            self.game.add_log_message("There is nothing to pick up")
 
     def target(self, enemies):
         if enemies:
@@ -41,14 +78,11 @@ class Player(EntityBase):
         elif key == ord("l"):
             self.move(1, 0)
         elif key == ord("f"):
-            if isinstance(self.room, RoomWithEnemiesMixin):
-                self.target(self.room.enemies)
+            self.target(self.room.enemies)
         elif key == ord("r"):
             self.reload_ammo()
-
-    def after_draw(self):
-        if self.target_mode:
-            self.target_mode.draw_target_line()
+        elif key == ord("g"):
+            self.pick_up_item()
 
     def draw_status(self, stdscr, panel_x):
         status_y = 1

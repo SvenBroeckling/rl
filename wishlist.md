@@ -1,6 +1,5 @@
-* Enter key to submit inventory crash
+* curses colors to css colors
 * target_mode: no enemies out of vision
 * Implement resize (web + curses)
-* Correct colors
 * Mouse support
 * Implement the rest of curses :D

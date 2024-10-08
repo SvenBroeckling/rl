@@ -1,6 +1,7 @@
 import curses
 import random
 
+from rlgame.item_stack import ItemStack, FloorItemStacks
 from rlgame.tiles import WallTile, DoorTile
 from rlgame.colors import OutsideSightColor
 
@@ -15,6 +16,9 @@ class RoomBase:
         self.exit = None
         self.game = game
         self.tiles = self.generator.generate_room()
+        self.enemies = []
+        self.floor_item_stacks = FloorItemStacks(self)
+        self.create_enemies()
         self.create_exit()
 
     @property
@@ -24,6 +28,9 @@ class RoomBase:
     @property
     def generator(self):
         raise NotImplementedError("generator method must be implemented in subclass")
+
+    def create_enemies(self):
+        self.enemies = []
 
     def create_exit(self):
         return None
@@ -84,6 +91,41 @@ class RoomBase:
                     else:
                         self.game.stdscr.addch(y, x, " ", curses.color_pair(0))
 
+    def move_enemies(self):
+        for enemy in self.enemies:
+            enemy.update_movement()
+            if enemy.can_move():
+                dx, dy = random.choice([(-1, 0), (1, 0), (0, -1), (0, 1)])
+                enemy.move(dx, dy)
+
+    def draw_enemies(self, stdscr):
+        for enemy in self.enemies:
+            enemy.draw(stdscr)
+
+    def add_item_stack_to_floor(self, x: int, y: int, item_stack: ItemStack):
+        """Add an item stack to the floor. The items are scattered randomly around the x, y position up to 5 tiles away,
+        only in walkable tiles. If a position is already occupied, the item stack is added to another random position.
+        """
+        while True:
+            dx = random.randint(-5, 5)
+            dy = random.randint(-5, 5)
+            if self.is_walkable(
+                x + dx, y + dy
+            ) and not self.floor_item_stacks.get_item_stack(x + dx, y + dy):
+                self.floor_item_stacks.add_item_stack(x + dx, y + dy, item_stack)
+                break
+
+    def draw_item_stacks(self, stdscr):
+        for (x, y), item_stack in self.floor_item_stacks.item_stacks.items():
+            if pos := self.get_map_position_in_viewport(x, y):
+                x, y = pos
+                stdscr.addch(
+                    y,
+                    x,
+                    item_stack.item.char,
+                    curses.color_pair(item_stack.item.color_pair),
+                )
+
     def draw(self, stdscr):
         self.draw_map(self.game.player)
 
@@ -97,3 +139,6 @@ class RoomBase:
                     door_tile.char,
                     curses.color_pair(door_tile.color),
                 )
+
+        self.draw_item_stacks(stdscr)
+        self.draw_enemies(stdscr)

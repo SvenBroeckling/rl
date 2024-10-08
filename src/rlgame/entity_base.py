@@ -4,13 +4,16 @@ import curses
 from .colors import PlayerColor
 from .dice import DiceRoll
 from .inventory import Inventory
+from .item_stack import ItemStack
+from .items import Weapon, Armor
 from .room_base import RoomBase
 
 
 class EntityBase:
     def __init__(self, game, x, y, speed=1, health=10, shooting_skill=1, room=None):
-        self.inventory = Inventory(self)
-        self.char = game.CHARS["player"]
+        self.inventory = Inventory(game)
+        self.char = "@"
+        self.char_emoji = "🧍"
         self.color = PlayerColor.pair_number
         self.x = x
         self.y = y
@@ -18,11 +21,22 @@ class EntityBase:
         self._room = room
         self.speed = speed
         self.health = health
+        self.max_health = health
         self.shooting_skill = shooting_skill
         self.view_distance = 10
         self.equipped_weapon = None
         self.equipped_armor = None
         self.reputation = 0
+
+    # Methods to be implemented by subclasses
+    def after_move(self, new_x, new_y):
+        pass
+
+    def before_move(self, new_x, new_y):
+        pass
+
+    def after_death(self):
+        pass
 
     @property
     def room(self) -> RoomBase:
@@ -52,22 +66,23 @@ class EntityBase:
                 return False
         return True
 
-    def after_move(self, new_x, new_y):
-        pass
-
     def move(self, dx, dy):
+        self.before_move(self.x + dx, self.y + dy)
         if self.room.is_walkable(self.x + dx, self.y + dy):
             self.x += dx
             self.y += dy
-        self.after_move(self.x, self.y)
+            self.after_move(self.x, self.y)
 
-    def set_starting_equipment(self):
+    def set_starting_equipment(self, min_tier=1, max_tier=9):
         for _ in range(3):
-            item = random.choice(self.game.available_items)
+            item = random.choice(self.game.get_available_items(min_tier, max_tier))
             self.inventory.add_item(item)
-        self.inventory.add_item(random.choice(self.game.available_weapons))
-        self.equip_weapon(random.choice(self.game.get_available_weapons()))
-        self.equip_armor(random.choice(self.game.get_available_armor()))
+        self.equip_weapon(
+            random.choice(self.game.get_available_weapons(min_tier, max_tier))
+        )
+        self.equip_armor(
+            random.choice(self.game.get_available_armor(min_tier, max_tier))
+        )
 
     def has_cover(self, x, y) -> int | None:
         dx = x - self.x
@@ -79,10 +94,10 @@ class EntityBase:
             if self.room.tiles[y][x].provides_cover:
                 return 3 + min(2, i)
 
-    def equip_weapon(self, weapon):
+    def equip_weapon(self, weapon: Weapon | None):
         self.equipped_weapon = weapon
 
-    def equip_armor(self, armor):
+    def equip_armor(self, armor: Armor | None):
         self.equipped_armor = armor
 
     def roll_cover(self, hits, attack_x, attack_y):
@@ -115,6 +130,25 @@ class EntityBase:
             self.equipped_weapon.magazine -= 1
             if self.equipped_weapon.magazine == 0:
                 self.game.add_log_message("Out of ammo, reload!")
+
+    def drop_inventory_to_floor(self, room: "RoomBase"):
+        """Drops all items in inventory to the floor."""
+        for item_stack in self.inventory.item_stacks.values():
+            room.add_item_stack_to_floor(self.x, self.y, item_stack)
+        if self.equipped_weapon:
+            room.add_item_stack_to_floor(
+                self.x, self.y, ItemStack(self.game, self.equipped_weapon, 1)
+            )
+            self.equip_weapon(None)
+        if self.equipped_armor:
+            room.add_item_stack_to_floor(
+                self.x, self.y, ItemStack(self.game, self.equipped_armor, 1)
+            )
+            self.equip_armor(None)
+        self.inventory.clear()
+
+    def heal(self, amount):
+        self.health = min(self.max_health, self.health + amount)
 
     def attack(self, enemy):
         if not self.has_ammo():
@@ -151,9 +185,8 @@ class EntityBase:
             self.game.add_log_message("Enemy defeated.")
             self.reputation += enemy.reputation
             self.game.current_room.enemies.remove(enemy)
-
-    def after_draw(self):
-        pass
+            enemy.drop_inventory_to_floor(self.game.current_room)
+            enemy.after_death()
 
     def draw(self, stdscr):
         if pos := self.room.get_map_position_in_viewport(self.x, self.y):

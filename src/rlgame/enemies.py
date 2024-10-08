@@ -7,7 +7,8 @@ from .entity_base import EntityBase
 class Enemy(EntityBase):
     def __init__(self, game, x, y, speed=1, health=10, shooting_skill=1, room=None):
         super().__init__(game, x, y, speed, health, shooting_skill, room)
-        self.char = game.CHARS["enemy"]
+        self.char = "E"
+        self.char_emoji = "👹"
         self.color = EnemyColor.pair_number
         self.current_speed = 0  # Current speed counter
 
@@ -103,4 +104,12 @@ class Enemy(EntityBase):
             panel_x + 1,
             f"Cover {cover}+" if cover else "No Cover",
             curses.color_pair(EnemyColor.pair_number),
+        )
+
+
+class TutorialEnemy(Enemy):
+    def after_death(self):
+        self.room.game.add_log_message("You defeated the tutorial enemy.")
+        self.room.game.add_log_message(
+            "It dropped some items, have a look around. Use 'g' to pick up items."
         )

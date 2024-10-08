@@ -1,11 +1,1 @@
-CHARS_EMOJI = {
-    "player": "🧍",
-    "enemy": "👹",
-    "item": "📦",
-}
-
-CHARS_ASCII = {
-    "player": "@",
-    "enemy": "E",
-    "item": "!",
-}
+ROOMS_PER_LEVEL = 5

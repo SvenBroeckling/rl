@@ -4,8 +4,8 @@ from . import constants
 from .colors import ColorBase, PlayerColor
 
 from .hallway import Hallway
+from .info_line import InfoLine
 from .items import Armor, Item, Weapon
-from .mixins import RoomWithEnemiesMixin
 from .player import Player
 from .rooms import Room
 from .status_line import StatusLine
@@ -14,9 +14,14 @@ from .status_line import StatusLine
 class Game:
     def __init__(self, stdscr, emoji=False):
         self.init_curses(stdscr)
-        self.init_resources(emoji)
+        self.init_colors()
+
+        self.emoji = emoji
 
         self.status_line = StatusLine(self)
+        self.info_line = InfoLine(self)
+        self.log_messages = []
+        self.log_offset = None
 
         self.hallway = Hallway(
             self, min_width=10, min_height=10, max_width=20, max_height=20
@@ -25,13 +30,13 @@ class Game:
         self.available_rooms = []
 
         self.player = Player(
-            self, self.current_room.width // 2, self.current_room.height // 2
+            self,
+            self.current_room.width // 2,
+            self.current_room.height - 2,
+            shooting_skill=2,
         )
-        self.player.set_starting_equipment()
+        self.player.set_starting_equipment(min_tier=1, max_tier=1)
         self.selected_enemy = None
-
-        self.log_messages = []
-        self.log_offset = None
 
     def init_curses(self, stdscr):
         self.stdscr = stdscr
@@ -39,48 +44,42 @@ class Game:
         self.side_panel_width = 35
         self.screen_height, self.screen_width = stdscr.getmaxyx()
         self.viewport_width = self.screen_width - self.side_panel_width
-        self.viewport_height = self.screen_height - 8  # 1 for status line, 4 for log
-
-    def init_resources(self, emoji):
-        self.init_colors()
-        self.available_items = self.get_available_items()
-        self.available_weapons = self.get_available_weapons()
-        self.available_armor = self.get_available_armor()
-
-        if emoji:
-            self.CHARS = constants.CHARS_EMOJI
-        else:
-            self.CHARS = constants.CHARS_ASCII
+        self.viewport_height = (
+            self.screen_height - 6
+        )  # 1 for status line, 1 for info, 4 for log
 
     def init_colors(self):
         curses.start_color()
         for color in ColorBase.__subclasses__():
             color().curses_init_pair()
 
-    def get_available_weapons(self):
-        return [cls() for cls in Weapon.__subclasses__()]
+    @staticmethod
+    def get_available_weapons(tier_min=1, tier_max=9):
+        return [
+            cls() for cls in Weapon.__subclasses__() if tier_min <= cls.tier <= tier_max
+        ]
 
-    def get_available_armor(self):
-        return [cls() for cls in Armor.__subclasses__()]
+    @staticmethod
+    def get_available_armor(tier_min=1, tier_max=9):
+        return [
+            cls() for cls in Armor.__subclasses__() if tier_min <= cls.tier <= tier_max
+        ]
 
-    def get_available_items(self):
+    @staticmethod
+    def get_available_items(tier_min=1, tier_max=9):
         return [
             cls()
             for cls in Item.__subclasses__()
             if cls.__name__ not in ["Weapon", "Armor"]
+            and tier_min <= cls.tier <= tier_max
         ]
 
     def create_available_rooms(self):
-        for _ in range(10):
+        for _ in range(constants.ROOMS_PER_LEVEL):
             self.available_rooms.append(Room(self))
 
     def draw_map(self):
         self.current_room.draw(self.stdscr)
-
-    def draw_entities(self):
-        self.player.draw(self.stdscr)
-        if isinstance(self.current_room, RoomWithEnemiesMixin):
-            self.current_room.draw_enemies(self.stdscr)
 
     def draw_side_panel(self):
         panel_x = self.viewport_width
@@ -155,15 +154,15 @@ class Game:
                 selected_item.apply(self.player)
 
         self.player.handle_input(key)
-        if isinstance(self.current_room, RoomWithEnemiesMixin):
-            self.current_room.move_enemies()
+        self.current_room.move_enemies()
         return True
 
     def render(self):
         self.stdscr.clear()
         self.draw_map()
         self.status_line.draw()
-        self.draw_entities()
+        self.info_line.draw()
+        self.player.draw(self.stdscr)
         self.draw_room_name()
         self.draw_side_panel()
         self.stdscr.refresh()
@@ -171,6 +170,12 @@ class Game:
     def game_loop(self):
         self.create_available_rooms()
         self.add_log_message("Welcome to the dungeon!")
+        self.add_log_message(
+            f"Clear {constants.ROOMS_PER_LEVEL} rooms to advance to the next level."
+        )
+        self.add_log_message(
+            "There is an enemy in the hallway. Use 'f' to target it, and 'f' again to shoot."
+        )
 
         while True:
             self.render()
