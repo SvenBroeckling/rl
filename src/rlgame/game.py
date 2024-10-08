@@ -170,6 +170,11 @@ class Game:
         self.draw_log()
         self.stdscr.refresh()
 
+    def restart_game(self):
+        self.__init__(self.stdscr, emoji=self.emoji)
+        self.add_log_message("Game restarted, obviously. You died.")
+        self.game_loop()
+
     def game_loop(self):
         self.create_available_rooms()
         self.add_log_message("Welcome to the dungeon!")

@@ -1,6 +1,35 @@
 from .constants import HTML_COLOR_CLASSES
 
 
+def html_color_class_name_to_hex(color_class_name):
+    """Convert an HTML color class name to a hex color code."""
+    if color_class_name.startswith("rgb-"):
+        _, r, g, b = color_class_name.split("-")
+        r = int(r)
+        g = int(g)
+        b = int(b)
+        r = (r * 51) // 255
+        g = (g * 51) // 255
+        b = (b * 51) // 255
+        return f"#{r:02x}{g:02x}{b:02x}"
+    elif color_class_name.startswith("gray-"):
+        gray = int(color_class_name.split("-")[1])
+        gray = (gray * 255) // 100
+        return f"#{gray:02x}{gray:02x}{gray:02x}"
+    elif color_class_name.startswith("bright-"):
+        return html_color_class_name_to_hex(color_class_name[7:])
+    else:
+        return color_class_name
+
+
+def curses_color_pair_to_html_color_pair(curses_color_pair):
+    """Convert a curses color pair to an HTML color pair."""
+    fg, bg = curses_color_pair
+    fg = html_color_class_name_to_hex(HTML_COLOR_CLASSES[fg])
+    bg = html_color_class_name_to_hex(HTML_COLOR_CLASSES[bg])
+    return fg, bg
+
+
 class Window:
     pass
 
@@ -130,10 +159,12 @@ class WebCurses:
         for row in self.screen:
             line = []
             for char, color_pair in row:
-                fg, bg = self.color_pairs.get(color_pair, (7, 0))
-                fg_class = f"color-{HTML_COLOR_CLASSES[fg]}"
-                bg_class = f"background-{HTML_COLOR_CLASSES[bg]}"
-                span = f'<span class="{fg_class} {bg_class}">{char}</span>'
+                fg, bg = curses_color_pair_to_html_color_pair(
+                    self.color_pairs.get(color_pair, (7, 0))
+                )
+                span = (
+                    f'<span style="color: {fg}; background-color: {bg};">{char}</span>'
+                )
                 line.append(span)
             result.append("".join(line))
         result = "<br>".join(result)

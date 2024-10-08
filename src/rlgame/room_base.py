@@ -16,7 +16,7 @@ class RoomBase:
         self.floor_item_stacks = FloorItemStacks(self)
 
         self.height = self.challenge_rating * random.randint(15, 25)
-        self.width = self.challenge_rating * random.randint(5, 10)
+        self.width = self.challenge_rating * random.randint(10, 12)
         self.tiles = self.generator.generate_room()
         self.create_enemies()
         # self.create_exit()  # No exit until all enemies are defeated

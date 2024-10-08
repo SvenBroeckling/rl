@@ -156,6 +156,8 @@ class EntityBase:
         self.health = min(self.max_health, self.health + amount)
 
     def attack(self, enemy):
+        from .player import Player  # TODO: Quick hack to avoid circular import
+
         if not self.has_ammo():
             self.game.add_log_message("Out of ammo!", color_pair=self.color)
             return
@@ -185,6 +187,10 @@ class EntityBase:
         enemy.health -= max(0, critical_hits)
 
         if enemy.health <= 0:
+            if isinstance(enemy, Player):
+                self.game.add_log_message("You died!", color_pair=self.color)
+                self.game.restart_game()
+                return
             self.game.add_log_message("Enemy defeated.", color_pair=self.color)
             self.reputation += enemy.reputation
             self.game.current_room.enemies.remove(enemy)

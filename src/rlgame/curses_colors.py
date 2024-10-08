@@ -16,6 +16,10 @@ COLOR_BRIGHT_CYAN = 14
 COLOR_BRIGHT_WHITE = 15
 
 # Extended 6x6x6 cube colors (R, G, B values)
+# Algorithm to calculate the color code:
+# 16 + 36 * R + 6 * G + B
+# where R, G, B are in [0, 5]
+
 COLOR_R0_G0_B0 = 16
 COLOR_R0_G0_B95 = 17
 COLOR_R0_G0_B135 = 18
@@ -34,6 +38,12 @@ COLOR_R0_G135_B135 = 30
 COLOR_R0_G135_B175 = 31
 COLOR_R0_G135_B215 = 32
 COLOR_R0_G135_B255 = 33
+COLOR_R0_G175_B0 = 34
+COLOR_R0_G175_B95 = 35
+COLOR_R0_G175_B135 = 36
+COLOR_R0_G175_B175 = 37
+COLOR_R0_G175_B215 = 38
+
 
 # And so on for the rest of the RGB cube
 
