@@ -51,3 +51,9 @@ class OutsideSightColor(ColorBase):
     pair_number = 7
     foreground = curses_colors.COLOR_GRAY_68
     background = curses_colors.COLOR_BLACK
+
+
+class UIColor(ColorBase):
+    pair_number = 8
+    foreground = curses_colors.COLOR_WHITE
+    background = curses_colors.COLOR_BLACK

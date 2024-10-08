@@ -8,6 +8,7 @@ class Enemy(EntityBase):
     def __init__(self, game, x, y, speed=1, health=10, shooting_skill=1, room=None):
         super().__init__(game, x, y, speed, health, shooting_skill, room)
         self.char = "E"
+        self.name = "Enemy"
         self.char_emoji = "👹"
         self.color = EnemyColor.pair_number
         self.current_speed = 0  # Current speed counter
@@ -15,11 +16,26 @@ class Enemy(EntityBase):
     def update_movement(self):
         self.current_speed += 1
 
-    def can_move(self):
+    def can_attack_player(self):
+        return (
+            self.has_line_of_sight(self.room.game.player)
+            and self.is_in_attack_range(
+                self.room.game.player.x, self.room.game.player.y
+            )
+            and self.has_ammo()
+        )
+
+    def can_move_by_speed(self):
         if self.current_speed >= self.speed:
             self.current_speed = 0  # Reset speed counter after moving
             return True
         return False
+
+    def after_death(self):
+        if not self.room.enemies:
+            self.room.game.add_log_message("You defeated all enemies in the room.")
+            self.room.game.add_log_message("The exit is now available.")
+            self.room.create_exit()
 
     def draw_status(self, stdscr, panel_x):
         status_y = 13
@@ -108,6 +124,12 @@ class Enemy(EntityBase):
 
 
 class TutorialEnemy(Enemy):
+    def __init__(self, game, x, y, speed=1, health=10, shooting_skill=1, room=None):
+        super().__init__(game, x, y, speed, health, shooting_skill, room)
+        self.char = "E"
+        self.name = "Tutorial Enemy"
+        self.char_emoji = "👹"
+
     def after_death(self):
         self.room.game.add_log_message("You defeated the tutorial enemy.")
         self.room.game.add_log_message(

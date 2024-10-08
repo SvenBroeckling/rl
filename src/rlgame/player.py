@@ -10,6 +10,7 @@ from .target_mode import TargetMode
 class Player(EntityBase):
     def __init__(self, game, x, y, speed=1, health=10, shooting_skill=1, room=None):
         super().__init__(game, x, y, speed, health, shooting_skill, room)
+        self.name = "Player"
         self.target_mode = None
         self.target_index = 0
         self.target_x = None

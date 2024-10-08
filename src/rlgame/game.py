@@ -1,7 +1,7 @@
 import curses
 
 from . import constants
-from .colors import ColorBase, PlayerColor
+from .colors import ColorBase, PlayerColor, UIColor
 
 from .hallway import Hallway
 from .info_line import InfoLine
@@ -24,9 +24,7 @@ class Game:
         self.log_messages = []
         self.log_offset = None
 
-        self.hallway = Hallway(
-            self, min_width=10, min_height=10, max_width=20, max_height=20
-        )
+        self.hallway = Hallway(self)
         self.current_room = self.hallway
         self.available_rooms = []
 
@@ -79,19 +77,17 @@ class Game:
         for _ in range(constants.ROOMS_PER_LEVEL):
             self.available_rooms.append(Room(self))
 
-    def draw_map(self):
-        self.current_room.draw(self.stdscr)
-
     def draw_side_panel(self):
         panel_x = self.viewport_width
         self.player.draw_status(self.stdscr, panel_x)
         if self.selected_enemy:
             self.selected_enemy.draw_status(self.stdscr, panel_x)
-        self.draw_log()
 
     def draw_room_name(self):
         s = f"{self.current_room.name} - Challenge Rating {self.current_room.challenge_rating}"
-        self.stdscr.addstr(0, 0, s, PlayerColor.pair_number | curses.A_BOLD)
+        self.stdscr.addstr(
+            0, 0, s, curses.color_pair(UIColor.pair_number) | curses.A_BOLD
+        )
 
     def draw_log(self):
         offset_y = 0
@@ -106,11 +102,15 @@ class Game:
                 self.log_offset : self.log_offset + 4
             ]
 
-        for i, message in enumerate(shown_messages_with_offset, 1):
-            self.stdscr.addstr(log_start_y + i, 0, message, PlayerColor.pair_number)
+        for i, (message, color_pair) in enumerate(shown_messages_with_offset, 1):
+            self.stdscr.addstr(
+                log_start_y + i, 0, message, curses.color_pair(color_pair)
+            )
 
-    def add_log_message(self, message):
-        self.log_messages.append(message)
+    def add_log_message(self, message, color_pair=None):
+        if not color_pair:
+            color_pair = UIColor.pair_number
+        self.log_messages.append((message, color_pair))
         self.deactivate_log_offset()
 
     def increase_log_offset(self):
@@ -161,12 +161,13 @@ class Game:
 
     def render(self):
         self.stdscr.clear()
-        self.draw_map()
+        self.current_room.draw(self.stdscr)
         self.status_line.draw()
         self.info_line.draw()
         self.player.draw(self.stdscr)
         self.draw_room_name()
         self.draw_side_panel()
+        self.draw_log()
         self.stdscr.refresh()
 
     def game_loop(self):

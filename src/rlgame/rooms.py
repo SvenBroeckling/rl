@@ -26,12 +26,12 @@ class Room(RoomBase):
     def create_enemies(self):
         self.enemies = []
 
-        amount = self.width * self.height // 200
+        amount = self.challenge_rating * random.randint(1, 3)
         for _ in range(amount):
             new_enemy = Enemy(
                 game=self.game,
                 x=random.randint(1, self.width - 2),
-                y=random.randint(1, self.height - 2),
+                y=random.randint(1, self.height // 2),
                 speed=random.randint(0, 2),
                 health=self.challenge_rating * random.randint(1, 3),
                 shooting_skill=self.challenge_rating * random.randint(1, 2),

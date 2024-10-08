@@ -7,21 +7,19 @@ from rlgame.colors import OutsideSightColor
 
 
 class RoomBase:
-    def __init__(
-        self, game, min_width=20, max_width=100, min_height=20, max_height=100
-    ):
-        self.height = random.randint(min_height, max_height)
-        self.width = random.randint(min_width, max_width)
-        self.was_entered = False
+    def __init__(self, game):
+        self.challenge_rating_modifier = random.randint(-1, 2)
+        self.enemies = []
         self.exit = None
         self.game = game
-        self.tiles = self.generator.generate_room()
-        self.enemies = []
+        self.was_entered = False
         self.floor_item_stacks = FloorItemStacks(self)
-        self.challenge_rating = 1
-        self.set_challenge_rating()
+
+        self.height = self.challenge_rating * random.randint(15, 25)
+        self.width = self.challenge_rating * random.randint(5, 10)
+        self.tiles = self.generator.generate_room()
         self.create_enemies()
-        self.create_exit()
+        # self.create_exit()  # No exit until all enemies are defeated
 
     @property
     def name(self):
@@ -31,9 +29,9 @@ class RoomBase:
     def generator(self):
         raise NotImplementedError("generator method must be implemented in subclass")
 
-    def set_challenge_rating(self):
-        challenge_rating = self.game.challenge_rating + random.randint(-1, 2)
-        self.challenge_rating = max(1, challenge_rating)
+    @property
+    def challenge_rating(self):
+        return max(1, self.game.challenge_rating + self.challenge_rating_modifier)
 
     def create_enemies(self):
         self.enemies = []
@@ -45,7 +43,7 @@ class RoomBase:
         if self.exit:
             player.x, player.y = self.exit
         else:
-            player.x, player.y = self.width // 2, self.height // 2
+            player.x, player.y = self.width // 2, self.height - 2
 
     def is_walkable(self, x, y):
         if 0 <= x < self.width and 0 <= y < self.height:
@@ -100,21 +98,26 @@ class RoomBase:
     def move_enemies(self):
         for enemy in self.enemies:
             enemy.update_movement()
-            if enemy.can_move():
-                dx, dy = random.choice([(-1, 0), (1, 0), (0, -1), (0, 1)])
-                enemy.move(dx, dy)
+            if enemy.can_move_by_speed():
+                if enemy.can_attack_player():
+                    enemy.attack(self.game.player)
+                elif not enemy.has_ammo():
+                    enemy.reload_ammo()
+                else:
+                    dx, dy = random.choice([(-1, 0), (1, 0), (0, -1), (0, 1)])
+                    enemy.move(dx, dy)
 
     def draw_enemies(self, stdscr):
         for enemy in self.enemies:
             enemy.draw(stdscr)
 
     def add_item_stack_to_floor(self, x: int, y: int, item_stack: ItemStack):
-        """Add an item stack to the floor. The items are scattered randomly around the x, y position up to 5 tiles away,
+        """Add an item stack to the floor. The items are scattered randomly around the x, y position up to 3 tiles away,
         only in walkable tiles. If a position is already occupied, the item stack is added to another random position.
         """
         while True:
-            dx = random.randint(-5, 5)
-            dy = random.randint(-5, 5)
+            dx = random.randint(-3, 3)
+            dy = random.randint(-3, 3)
             if self.is_walkable(
                 x + dx, y + dy
             ) and not self.floor_item_stacks.get_item_stack(x + dx, y + dy):

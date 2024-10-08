@@ -37,6 +37,7 @@ class WallTile(TileBase):
         self.name = "Wall"
         self.is_walkable = False
         self.breaks_line_of_sight = True
+        self.provides_cover = True
         self.chars = ["#"]
         self.chars_emoji = ["#"]
         self.color = WallColor.pair_number
@@ -67,6 +68,7 @@ class DoorTile(TileBase):
         self.is_walkable = True
         self.breaks_line_of_sight = False
         self.chars = ["X", "x", " "]
+        self.provides_cover = True
         self.chars_emoji = ["🚪"]
         self.color = DoorColor.pair_number
         self.visited = visited
@@ -87,6 +89,7 @@ class ObstacleTile(TileBase):
         super().__init__(game)
         self.name = "Obstacle"
         self.is_walkable = False
+        self.provides_cover = True
         self.breaks_line_of_sight = False
         self.chars = ["O"]
         self.chars_emoji = ["O"]

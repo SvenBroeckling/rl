@@ -23,7 +23,7 @@ class Item:
         self.log_message(player)
 
     def apply_effect(self, player):
-        raise NotImplementedError("This should be implemented")
+        pass
 
     def log_message(self, player):
         player.game.add_log_message(f"Used {self.name}")
@@ -35,6 +35,7 @@ class Weapon(Item):
     chars_emoji = ["🔫"]  # Emoji for weapon (sword): "🗡️"
     damage_potential = 0
     range = 1
+    noise = 0
     piercing = 0
     magazine = 0
     magazine_capacity = 0
@@ -97,6 +98,14 @@ class TwoPieceSuit(Armor):
     tier = 1
 
 
+class HeavyPlatedArmor(Armor):
+    identifier = "armor_heavy_plated"
+    name = "Heavy Plated Armor"
+    description = "An extremely heavy armor with high protection."
+    protection = 3
+    tier = 4
+
+
 class StimPack(Item):
     identifier = "item_stimpack"
     name = "Stimpack"
@@ -106,6 +115,19 @@ class StimPack(Item):
 
     def apply_effect(self, player):
         player.heal(10)
+
+
+class Lockpick(Item):
+    identifier = "item_lockpick"
+    name = "Lockpick"
+    description = "A tool used to open locked doors or containers."
+    stack_size = 3
+    tier = 1
+
+    def apply_effect(self, player):
+        if not player.game.current_room.exit:
+            player.game.add_log_message("You use the lockpick.")
+            player.game.current_room.create_exit()
 
 
 class Bandage(Item):
@@ -119,11 +141,24 @@ class Bandage(Item):
         player.heal(5)
 
 
+class Slingshot(Weapon):
+    identifier = "weapon_slingshot"
+    name = "Slingshot"
+    description = "A simple ranged weapon that fires small stones."
+    range = 10
+    noise = 0
+    damage_potential = 1
+    magazine = 1
+    magazine_capacity = 1
+    tier = 1
+
+
 class Pistol(Weapon):
     identifier = "weapon_pistol"
     name = "Pistol"
     description = "A standard 9mm handgun"
     range = 12
+    noise = 2
     damage_potential = 1
     magazine = 6
     magazine_capacity = 6
@@ -135,6 +170,7 @@ class Revolver(Weapon):
     name = "Revolver"
     description = "A .357 revolver"
     range = 10
+    noise = 3
     piercing = 1
     damage_potential = 2
     magazine = 6
@@ -147,9 +183,22 @@ class Shotgun(Weapon):
     name = "Shotgun"
     description = "A 12-gauge shotgun"
     range = 5
+    noise = 4
     damage_potential = 4
     magazine = 2
     magazine_capacity = 2
+    tier = 2
+
+
+class Crossbow(Weapon):
+    identifier = "weapon_crossbow"
+    name = "Crossbow"
+    description = "A silent and deadly ranged weapon."
+    range = 15
+    noise = 0
+    damage_potential = 3
+    magazine = 1
+    magazine_capacity = 1
     tier = 2
 
 
@@ -159,9 +208,23 @@ class AssaultRifle(Weapon):
     description = "A 9mm assault rifle."
     range = 20
     damage_potential = 3
+    noise = 3
     piercing = 2
     magazine = 24
     magazine_capacity = 24
+    tier = 3
+
+
+class SniperRifle(Weapon):
+    identifier = "weapon_sniper_rifle"
+    name = "Sniper Rifle"
+    description = "A long-range rifle with high damage."
+    range = 30
+    damage_potential = 5
+    noise = 4
+    piercing = 3
+    magazine = 5
+    magazine_capacity = 5
     tier = 3
 
 
@@ -170,6 +233,7 @@ class MachineGun(Weapon):
     name = "Machine Gun"
     description = "A 7.62mm machine gun."
     range = 15
+    noise = 5
     damage_potential = 4
     piercing = 3
     magazine = 50

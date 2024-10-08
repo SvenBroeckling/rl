@@ -7,9 +7,6 @@ from .tiles import DoorTile
 
 
 class Hallway(RoomBase):
-    def __init__(self, game, **kwargs):
-        super().__init__(game, **kwargs)
-
     @property
     def generator(self):
         return HallwayGenerator(game=self.game, width=self.width, height=self.height)
@@ -18,8 +15,9 @@ class Hallway(RoomBase):
     def name(self):
         return "Hallway"
 
-    def set_challenge_rating(self):
-        self.challenge_rating = 1
+    @property
+    def challenge_rating(self):
+        return 1
 
     def create_enemies(self):
         new_enemy = TutorialEnemy(
@@ -44,9 +42,9 @@ class Hallway(RoomBase):
         for room in self.game.available_rooms:
             tile = DoorTile(self.game)
             if room.was_entered:
-                tile = DoorTile(self.game, cleared=True)
-            if room.is_cleared:
                 tile = DoorTile(self.game, visited=True)
+            if room.is_cleared:
+                tile = DoorTile(self.game, cleared=True)
 
             if pos := self.get_map_position_in_viewport(*room.hallway_entry):
                 x, y = pos

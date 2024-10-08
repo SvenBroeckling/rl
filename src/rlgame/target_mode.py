@@ -31,10 +31,12 @@ class TargetMode:
     def select_target(self, enemy):
         self.target_x = enemy.x
         self.target_y = enemy.y
-        if self.game.player.has_line_of_sight(enemy):
-            self.game.selected_enemy = enemy
-        else:
+        if not self.game.player.has_line_of_sight(enemy):
             self.game.selected_enemy = None
+        elif not self.game.player.is_in_attack_range(enemy.x, enemy.y):
+            self.game.selected_enemy = None
+        else:
+            self.game.selected_enemy = enemy
 
     def next_target(self):
         self.target_index = (self.target_index + 1) % len(self.enemies)
@@ -84,6 +86,10 @@ class TargetMode:
 
             # respect line of sight - stop drawing if we hit a wall or obstacle
             if self.game.current_room.tiles[y][x].breaks_line_of_sight:
+                break
+
+            # respect attack range - stop drawing if we hit the maximum attack range
+            if not self.game.player.is_in_attack_range(x, y):
                 break
 
             if pos := self.game.current_room.get_map_position_in_viewport(x, y):

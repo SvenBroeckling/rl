@@ -12,6 +12,7 @@ from .room_base import RoomBase
 class EntityBase:
     def __init__(self, game, x, y, speed=1, health=10, shooting_skill=1, room=None):
         self.inventory = Inventory(game)
+        self.name = "Entity"
         self.char = "@"
         self.char_emoji = "🧍"
         self.color = PlayerColor.pair_number
@@ -52,6 +53,11 @@ class EntityBase:
 
     def is_in_view_distance(self, x, y) -> bool:
         return (x - self.x) ** 2 + (y - self.y) ** 2 <= self.view_distance**2
+
+    def is_in_attack_range(self, x, y) -> bool:
+        if not self.equipped_weapon:
+            return False
+        return (x - self.x) ** 2 + (y - self.y) ** 2 <= self.equipped_weapon.range**2
 
     def has_line_of_sight(self, entity: "EntityBase"):
         dx = entity.x - self.x
@@ -110,13 +116,14 @@ class EntityBase:
                 f"{hits}d6", minimum_roll=cover, crit_target=None
             ).roll()
             self.game.add_log_message(
-                f"Cover roll: [{cover_roll.result_string}] -> {cover_roll.successes} hits blocked."
+                f"{self.name} cover roll: [{cover_roll.result_string}] -> {cover_roll.successes} hits blocked.",
+                color_pair=self.color,
             )
             hits -= cover_roll.successes
         return hits
 
     def reload_ammo(self):
-        self.game.add_log_message("Reloading...")
+        self.game.add_log_message(f"{self.name}: reloading...", color_pair=self.color)
         if self.equipped_weapon:
             self.equipped_weapon.magazine = self.equipped_weapon.magazine_capacity
 
@@ -128,8 +135,6 @@ class EntityBase:
     def reduce_ammo(self):
         if self.equipped_weapon:
             self.equipped_weapon.magazine -= 1
-            if self.equipped_weapon.magazine == 0:
-                self.game.add_log_message("Out of ammo, reload!")
 
     def drop_inventory_to_floor(self, room: "RoomBase"):
         """Drops all items in inventory to the floor."""
@@ -152,7 +157,7 @@ class EntityBase:
 
     def attack(self, enemy):
         if not self.has_ammo():
-            self.game.add_log_message("Out of ammo!")
+            self.game.add_log_message("Out of ammo!", color_pair=self.color)
             return
 
         self.reduce_ammo()
@@ -163,9 +168,7 @@ class EntityBase:
         cover_str = "No cover"
         if enemy.has_cover(self.x, self.y):
             cover_str = f"Cover: {enemy.has_cover(self.x, self.y)}+"
-        log_string = (
-            f"Attacking with {roll_string}: [{roll.result_string}], {cover_str} ->"
-        )
+        log_string = f"{self.name}: attacking with {roll_string}: [{roll.result_string}], {cover_str} ->"
 
         if roll.successes == 0 and roll.critical_hits == 0:
             log_string += " Miss!"
@@ -174,7 +177,7 @@ class EntityBase:
             if roll.critical_hits:
                 log_string += f" {roll.critical_hits} critical hits!"
 
-        self.game.add_log_message(log_string)
+        self.game.add_log_message(log_string, color_pair=self.color)
 
         hits = enemy.roll_cover(roll.successes, self.x, self.y)
         enemy.health -= max(0, hits - enemy.equipped_armor.protection)
@@ -182,7 +185,7 @@ class EntityBase:
         enemy.health -= max(0, critical_hits)
 
         if enemy.health <= 0:
-            self.game.add_log_message("Enemy defeated.")
+            self.game.add_log_message("Enemy defeated.", color_pair=self.color)
             self.reputation += enemy.reputation
             self.game.current_room.enemies.remove(enemy)
             enemy.drop_inventory_to_floor(self.game.current_room)
