@@ -44,6 +44,7 @@ class Inventory:
             if item_stack.item == item:
                 if item_stack.remove_items(amount):
                     del self.item_stacks[key]
+                    self.selected_identifier = None
                 return
 
     def open_inventory(self, stdscr):
